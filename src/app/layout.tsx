@@ -61,8 +61,8 @@ export default async function RootLayout({
         `}} />
         <Script 
           src={process.env.NEXT_PUBLIC_SQUARE_APP_ID?.startsWith('sandbox') 
-            ? "https://sandbox.web.squareupsandbox.com/v2/payment.js" 
-            : "https://web.squarecdn.com/v2/payment.js"} 
+            ? "https://sandbox.web.squarecdn.com/v1/square.js" 
+            : "https://web.squarecdn.com/v1/square.js"} 
           strategy="beforeInteractive"
         />
         <Script id="facebook-pixel">
