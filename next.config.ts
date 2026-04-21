@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       allowedOrigins: [
         '*.preview.emergentagent.com',
+        '*.cluster-0.preview.emergentcf.cloud',
         '*.preview.emergentcf.cloud',
         'localhost:3000',
       ],
