@@ -9,6 +9,10 @@ import { siteContent as defaultContent } from '@/lib/content';
 import { AppLayout } from './AppLayout';
 import { Metadata } from 'next';
 
+// Force dynamic rendering so content.json edits (via /admin) reflect immediately
+// without requiring a full rebuild. Trade-off: pages are SSR'd on each request.
+export const dynamic = 'force-dynamic';
+
 import { Montserrat, Mouse_Memoirs, Poppins, Work_Sans } from 'next/font/google';
 
 const montserrat = Montserrat({

@@ -16,7 +16,7 @@
   "siteContent": {
     "header": {
       "logo": "/images/aaa.png",
-      "announcementBar": "🤍​ LIQUIDACION DE STOCK SOLO HOY –50 % DTO Y ENVIO GRATIS 🤍"
+      "announcementBar": "🤍​ LIQUasaCION DE STOCK SOLO HOY –50 % DTO Y ENVIO GRATIS 🤍"
     },
     "footer": {
       "brandName": "Gameover",
@@ -71,14 +71,14 @@
             {
               "id": "10k",
               "name": "1 Jugador",
-              "price": 99,
-              "originalPrice": 189
+              "price": 79,
+              "originalPrice": 159
             },
             {
               "id": "33k",
               "name": "2 Jugadores",
               "price": 139,
-              "originalPrice": 299,
+              "originalPrice": 229,
               "isBestSeller": true
             }
           ],
@@ -140,7 +140,7 @@
               "content": "Nuestro equipo de soporte está disponible las 24 horas para ayudarte con cualquier duda o problema técnico que puedas tener con tu consola."
             }
           },
-          "distributorBadge": "Distribuidor oficial en España y Europa",
+          "distributorBadge": "Distribuidor oficial en España y Europsa",
           "purchaseBenefits": {
             "gifts": "Plug & Play en 30 segundos.",
             "games": "Más de 15.000 juegos arcade.",
