@@ -8,6 +8,15 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    serverActions: {
+      allowedOrigins: [
+        '*.preview.emergentagent.com',
+        '*.preview.emergentcf.cloud',
+        'localhost:3000',
+      ],
+    },
+  },
   images: {
     remotePatterns: [
       {
