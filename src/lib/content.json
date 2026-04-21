@@ -1,0 +1,771 @@
+{
+  "footerInfoLinks": [
+    {
+      "text": "Localiza tu pedido",
+      "href": "/localizar-pedido"
+    },
+    {
+      "text": "Sobre Nosotros",
+      "href": "/sobre-nosotros"
+    },
+    {
+      "text": "Contacto",
+      "href": "/contacto"
+    }
+  ],
+  "siteContent": {
+    "header": {
+      "logo": "/images/aaa.png",
+      "announcementBar": "🤍​ LIQUIDACION DE STOCK SOLO HOY –50 % DTO Y ENVIO GRATIS 🤍"
+    },
+    "footer": {
+      "brandName": "Gameover",
+      "brandSlogan": "Tu portal a la nostalgia de los videojuegos.",
+      "subscriptionTitle": "Únete a nuestra comunidad",
+      "subscriptionSlogan": "Recibe ofertas exclusivas, noticias y más.",
+      "whatsAppNumber": "680414307",
+      "policyLinks": [
+        {
+          "text": "Política de Privacidad",
+          "href": "/politica-de-privacidad"
+        },
+        {
+          "text": "Términos de Servicio",
+          "href": "/terminos-de-servicio"
+        },
+        {
+          "text": "Política de Envío",
+          "href": "/politica-de-envio"
+        },
+        {
+          "text": "Política de Devoluciones",
+          "href": "/politica-de-devoluciones"
+        }
+      ],
+      "socialLinks": [
+        {
+          "name": "Facebook",
+          "href": "#",
+          "icon": "Facebook"
+        },
+        {
+          "name": "Instagram",
+          "href": "#",
+          "icon": "Instagram"
+        },
+        {
+          "name": "YouTube",
+          "href": "#",
+          "icon": "Youtube"
+        }
+      ]
+    },
+    "homePage": {
+      "heroImage": "/images/emuladores2.webp",
+      "productSection": {
+        "product": {
+          "id": "fitboard-set",
+          "name": "Consola Gameover",
+          "cartImage": "/images/portada.webp",
+          "variants": [
+            {
+              "id": "10k",
+              "name": "1 Jugador",
+              "price": 99,
+              "originalPrice": 189
+            },
+            {
+              "id": "33k",
+              "name": "2 Jugadores",
+              "price": 139,
+              "originalPrice": 299,
+              "isBestSeller": true
+            }
+          ],
+          "images": [
+            {
+              "id": "gallery-main",
+              "src": "/images/portada.webp",
+              "alt": "Consola Gameover con mandos",
+              "hint": "retro console"
+            },
+            {
+              "id": "gallery-2",
+              "src": "/images/p1.webp",
+              "alt": "Consola en un setup de gaming",
+              "hint": "gaming setup"
+            },
+            {
+              "id": "gallery-3",
+              "src": "/images/p2.webp",
+              "alt": "Interfaz de la consola",
+              "hint": "console interface"
+            },
+            {
+              "id": "gallery-4",
+              "src": "/images/p11.webp",
+              "alt": "Captura de pantalla del juego FIFA",
+              "hint": "fifa soccer game"
+            },
+            {
+              "id": "gallery-5",
+              "src": "/images/p12.webp",
+              "alt": "Colección de juegos retro",
+              "hint": "retro games"
+            }
+          ],
+          "whatsInTheBox": [
+            "1 Consola Gameover®",
+            "2 Mandos inalámbricos",
+            "1 Cable HDMI",
+            "1 Cable de alimentación USB",
+            "1 Manual de instrucciones"
+          ],
+          "productInfoAccordion": {
+            "shipping": {
+              "title": "Envío y seguimiento",
+              "freeShippingTitle": "📦 Envío Gratis",
+              "freeShippingContent": "Ofrecemos envío gratuito con MRW en todos los pedidos. El tiempo estimado de envío es de 2 a 3 días hábiles desde el momento en que se procesa tu pedido.",
+              "trackingTitle": "🚚 Seguimiento de tu pedido",
+              "trackingContent": "Tu número de seguimiento estará disponible inmediatamente después de realizar tu compra, lo que te permitirá monitorear el estado de tu pedido en tiempo real.",
+              "contactInfo": "Si tienes cualquier duda, no dudes en contactarnos. 😊"
+            },
+            "warranty": {
+              "title": "Garantía y Devoluciónes",
+              "satisfactionGuarantee": "Ofrecemos una Garantía Total de 30 días.",
+              "returnsPolicy": "Si después de probar la Consola Gameover® no quedas satisfecha o surge cualquier problema, nos encargamos de todo y asumimos todos los costes de devolución."
+            },
+            "extra": {
+              "title": "Soporte Técnico",
+              "content": "Nuestro equipo de soporte está disponible las 24 horas para ayudarte con cualquier duda o problema técnico que puedas tener con tu consola."
+            }
+          },
+          "distributorBadge": "Distribuidor oficial en España y Europa",
+          "purchaseBenefits": {
+            "gifts": "Plug & Play en 30 segundos.",
+            "games": "Más de 15.000 juegos arcade.",
+            "tv": "Funciona con cualquier TV"
+          },
+          "countdownOffer": {
+            "activeText": "Haz tu pedido antes de <strong>{timer}</strong> para conseguir la oferta y envio gratis",
+            "expiredText": "La oferta de 1 año de membresía gratis ha terminado."
+          },
+          "selectionOptions": {
+            "colors": {
+              "label": "COLOR",
+              "options": [
+                { "id": "black", "name": "Negro", "image": "/images/11.webp" },
+                { "id": "blue", "name": "Azul", "image": "/images/22.webp" }
+              ]
+            }
+          }
+        }
+      },
+      "actionSection": {
+        "title": "¡Juega a lo grande, diviértete como un niño!",
+        "description": "Disfruta como antes en tu casa. Sin necesidad de introducir monedas de 25 pesetas.",
+        "buttonText": "COMPRAR AHORA"
+      },
+      "featureSection1": {
+        "title": "🎮 Las consolas retro están de moda.",
+        "paragraphs": [
+          "Gameover te da la libertad de jugar a los shooters arcade como se concibieron originalmente: sin cables que te limiten ni distracciones que interrumpan la experiencia. Es totalmente inalámbrico , sensible y está diseñado para que te resulte natural en las manos. Te mueves con libertad, apuntas instintivamente y mantienes la puntería. Cada disparo pone a prueba tu habilidad, ofreciendo una experiencia de tiro totalmente inmersiva que recompensa la precisión y el control."
+        ],
+        "listItems": [],
+        "imageSrc": "/images/prueba.webp"
+      },
+      "featureSection2": {
+        "title": "✅​ Sincronización del retroceso",
+        "paragraphs": [
+          "Hemos creado un programa específico de sincronización de retroceso para Retro Gun . Sincroniza el retroceso y la vibración con la acción en pantalla. Ajusta la respuesta para que las pistolas, las escopetas y las ametralladoras tengan cada una su propia potencia y velocidad de retroceso , de modo que realmente se siente como si estuvieras sosteniendo un arma diferente. Sin munición, no hay retroceso. Recargar produce una vibración perceptible. Compatible con MameHooker, QmameHooker, Hook of the Reaper y DemulShooter para una retroalimentación precisa y adaptada al juego."
+        ],
+        "listItems": [],
+        "imageSrc": "/images/prueba2.webp"
+      },
+      "gallerySection": {
+        "images": [
+          {
+            "src": "/images/prueba3.webp",
+            "alt": "Captura de pantalla del juego NBA",
+            "hint": "nba basketball game"
+          }
+        ]
+      },
+      "gallerySection2": {
+        "images": [
+          {
+            "src": "/images/prueba2.webp",
+            "alt": "Captura de pantalla del juego FIFA (Copia)",
+            "hint": "fifa soccer game"
+          },
+          {
+            "src": "/images/prueba3.webp",
+            "alt": "Captura de pantalla del juego NBA (Copia)",
+            "hint": "nba basketball game"
+          }
+        ]
+      },
+      "customerReviewsCarouselSection": {
+        "title": "Nuestros Jugadores en Acción",
+        "videos": [
+          {
+            "id": "1",
+            "src": "/images/video1.mp4",
+            "title": "Review 1"
+          },
+          {
+            "id": "2",
+            "src": "/images/video2.mp4",
+            "title": "Review 2"
+          },
+          {
+            "id": "3",
+            "src": "/images/video3.mp4",
+            "title": "Review 3"
+          },
+          {
+            "id": "4",
+            "src": "/images/video4.mp4",
+            "title": "Review 4"
+          },
+          {
+            "id": "5",
+            "src": "/images/video1.mp4",
+            "title": "Review 5"
+          }
+        ]
+      },
+      "loQueEntrenarasSection": {
+        "title": "¿CÓMO CONECTAR LA CONSOLA?",
+        "listItems": [
+          "<b>*NO REQUIERE DE INSTALACIÓN</b>",
+          "1 - Conectar la consola con el cable HDMI al televisor.",
+          "2 - Conectar el receptor de los mandos (usb).",
+          "3 - Enchufar el alimentador de carga (cable con entrada usb) a la televisión o a una base de carga."
+        ],
+        "imageSrc": "/images/aa.png"
+      },
+      "communitySection": {
+        "title": "Únete a la Comunidad",
+        "description": "Forma parte de nuestra comunidad de jugadores que, como tú, han decidido revivir los mejores momentos de su infancia con Consolas Gameover.",
+        "features": [
+          {
+            "icon": "Dumbbell",
+            "text": "Planes de entrenamiento"
+          },
+          {
+            "icon": "HeartPulse",
+            "text": "Clases en vivo"
+          },
+          {
+            "icon": "Video",
+            "text": "Biblioteca de ejercicios"
+          },
+          {
+            "icon": "Sparkles",
+            "text": "Retos y motivación"
+          }
+        ],
+        "buttonText": "Más sobre la comunidad",
+        "buttonLink": "/comunidad",
+        "cartImage": "/images/mario.png"
+      },
+      "reviewsSection": {
+        "title": "Opinión de Nuestros Clientes",
+        "reviews": [
+          {
+            "id": "1",
+            "name": "Javier M.",
+            "date": "12/02/2026",
+            "rating": 5,
+            "text": "Una pasada de consola. La compré para recordar viejos tiempos y ha superado mis expectativas. ¡El envío fue en 24 horas!",
+            "isVerified": true,
+            "image": "/images/v1.avif"
+          },
+          {
+            "id": "2",
+            "name": "Sofía L.",
+            "date": "05/01/2026",
+            "rating": 5,
+            "text": "¡Funciona a la perfección! Fácil de conectar y las pistolas inalámbricas son súper cómodas. Mis hijos están encantados.",
+            "isVerified": true,
+            "image": "/images/v2.avif"
+          },
+          {
+            "id": "3",
+            "name": "Marcos G.",
+            "date": "28/02/2026",
+            "rating": 5,
+            "text": "La cantidad de juegos es increíble, no sé ni por dónde empezar. Un viaje directo a la infancia. La recomiendo totalmente.",
+            "isVerified": true,
+            "image": "/images/v3.avif"
+          },
+          {
+            "id": "4",
+            "name": "Lucía P.",
+            "date": "14/03/2026",
+            "rating": 5,
+            "text": "Servicio de 10. La pedí un martes y el miércoles ya estaba en casa. La consola es una maravilla para los nostálgicos.",
+            "isVerified": true,
+            "image": "/images/v4.webp"
+          },
+          {
+            "id": "5",
+            "name": "Daniel F.",
+            "date": "20/01/2026",
+            "rating": 5,
+            "text": "Muy contento con la compra. La calidad de imagen es genial en una tele moderna y no hay lag en los mandos. ¡Genial!",
+            "isVerified": true,
+            "image": "/images/v5.avif"
+          },
+          {
+            "id": "6",
+            "name": "Paula V.",
+            "date": "11/03/2026",
+            "rating": 5,
+            "text": "Fue un regalo para mi pareja y le encantó. Estamos reviviendo todos los juegos de nuestra adolescencia. ¡Un acierto!",
+            "isVerified": true,
+            "image": "/images/v6.webp"
+          },
+          {
+            "id": "7",
+            "name": "Adrián S.",
+            "date": "02/02/2026",
+            "rating": 5,
+            "text": "La mejor compra que he hecho en mucho tiempo. Conectar y jugar, sin complicaciones. Ideal para fiestas con amigos.",
+            "isVerified": true,
+            "image": "/images/v7.avif"
+          },
+          {
+            "id": "8",
+            "name": "Elena R.",
+            "date": "15/01/2026",
+            "rating": 5,
+            "text": "Tenía dudas, pero la opción de pago seguro me dio confianza. El producto es tal y como se describe. ¡Perfecto!",
+            "isVerified": true,
+            "image": "/images/v8.avif"
+          },
+          {
+            "id": "9",
+            "name": "Hugo N.",
+            "date": "09/03/2026",
+            "rating": 5,
+            "text": "Me encanta que sea tan compacta y fácil de llevar. Me la llevo a casa de mis amigos y montamos torneos como antes.",
+            "isVerified": true,
+            "image": "/images/v9.avif"
+          },
+          {
+            "id": "10",
+            "name": "Martina C.",
+            "date": "22/02/2026",
+            "rating": 5,
+            "text": "¡Increíble! La atención al cliente fue muy rápida y resolvieron todas mis dudas antes de comprar. El producto, una joya.",
+            "isVerified": true,
+            "image": "/images/v10.avif"
+          },
+          {
+            "id": "11",
+            "name": "Álvaro D.",
+            "date": "01/01/2026",
+            "rating": 5,
+            "text": "La función de guardar partida es lo mejor. Puedo seguir mis juegos largos sin problema. Cien por cien recomendada.",
+            "isVerified": true,
+            "image": "/images/v11.avif"
+          },
+          {
+            "id": "12",
+            "name": "Carla B.",
+            "date": "10/02/2026",
+            "rating": 5,
+            "text": "El paquete llegó en perfecto estado y muy rápido. La consola funciona de maravilla. ¡Horas de diversión aseguradas!",
+            "isVerified": true,
+            "image": "/images/v12.avif"
+          },
+          {
+            "id": "13",
+            "name": "David Z.",
+            "date": "04/03/2026",
+            "rating": 5,
+            "text": "Una calidad-precio inmejorable. Por lo que cuesta, tienes una biblioteca de juegos casi infinita. Muy satisfecho.",
+            "isVerified": true,
+            "image": "/images/v13.avif"
+          },
+          {
+            "id": "14",
+            "name": "Valeria T.",
+            "date": "18/01/2026",
+            "rating": 5,
+            "text": "Los mandos son ligeros y responden muy bien. Se agradece que no tengan cables. La experiencia de juego es fantástica.",
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "15",
+            "name": "Mario E.",
+            "date": "25/02/2026",
+            "text": "Me llegó ayer y ya he pasado horas jugando al Metal Slug. Qué recuerdos... ¡Gracias por este pedazo de nostalgia!",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "16",
+            "name": "Noa H.",
+            "date": "07/03/2026",
+            "text": "Súper fácil de instalar, en menos de un minuto ya estaba jugando. Muy intuitiva y con un menú muy claro. ¡Genial!",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "17",
+            "name": "Diego Q.",
+            "date": "12/01/2026",
+            "text": "Me ha sorprendido la cantidad de recreativas que trae. Es como tener un salón arcade en casa. ¡Brutal!",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "18",
+            "name": "Julia A.",
+            "date": "03/02/2026",
+            "text": "La compré para una fiesta de cumpleaños y fue el alma de la fiesta. Todos mis amigos quieren una ahora. ¡Éxito total!",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "19",
+            "name": "Leo I.",
+            "date": "15/03/2026",
+            "text": "Excelente producto. La posibilidad de añadir más juegos es un puntazo. El soporte técnico me ayudó con una duda muy rápido.",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "20",
+            "name": "Alba O.",
+            "date": "21/01/2026",
+            "text": "¡Me ha llegado hoy! El envío súper rápido y todo en orden. Ya estoy viciada al Super Mario. ¡Gracias!",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "21",
+            "name": "Enzo W.",
+            "date": "08/02/2026",
+            "text": "Una compraza. Funciona perfectamente y la selección de juegos es espectacular. Justo lo que buscaba para mis ratos libres.",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "22",
+            "name": "Olivia Y.",
+            "date": "02/03/2026",
+            "text": "Los dos mandos funcionan genial para jugar en pareja. Nos estamos pasando todos los juegos cooperativos. ¡Muy divertido!",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "23",
+            "name": "Mateo J.",
+            "date": "14/01/2026",
+            "text": "No ocupa nada y es muy potente. La tengo conectada detrás de la tele y ni se ve. La recomiendo 100%.",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "24",
+            "name": "Chloe K.",
+            "date": "27/02/2026",
+            "text": "Me decidí por la versión de 33.000 juegos y no me arrepiento. Hay juegos para no aburrirse en años. ¡Fantástica!",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "25",
+            "name": "Lucas X.",
+            "date": "10/03/2026",
+            "text": "El envío fue rapidísimo, en menos de 48 horas la tenía en casa. Todo perfecto, muy profesionales.",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "26",
+            "name": "María G.",
+            "date": "06/01/2026",
+            "text": "Un producto excelente para los amantes de lo retro. Funciona de lujo y es muy fácil de usar. ¡Un 10!",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "27",
+            "name": "Alejandro V.",
+            "date": "19/02/2026",
+            "text": "La consola es una pasada. Revivir los juegos de la PS1 ha sido increíble. Muy buena emulación.",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "28",
+            "name": "Jimena F.",
+            "date": "05/03/2026",
+            "text": "Compré la consola y llegó al día siguiente. No se puede pedir más. ¡Todo perfecto y funcionando!",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "29",
+            "name": "Martín P.",
+            "date": "11/01/2026",
+            "text": "Me ha sorprendido lo bien que se ven los juegos en una tele grande. La conexión HDMI es un acierto.",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "30",
+            "name": "Sara M.",
+            "date": "24/02/2026",
+            "text": "Una compra genial. La relación calidad-precio es insuperable. Horas de vicio por delante. ¡Gracias!",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "31",
+            "name": "Pablo R.",
+            "date": "09/03/2026",
+            "text": "Perfecto para regalar. Mi hermano está como un niño pequeño con su nueva consola. Un regalo original y nostálgico.",
+            "rating": 5,
+            "isVerified": true,
+            "image": "/images/aa.png"
+          },
+          {
+            "id": "32",
+            "name": "Daniela L.",
+            "date": "03/01/2026",
+            "text": "Me llegó en 24h, es increíble la de juegos que tiene y la facilidad de uso. Un 10 de 10.",
+            "rating": 5,
+            "isVerified": true,
+            "image": ""
+          },
+          {
+            "id": "33",
+            "name": "Manuel S.",
+            "date": "16/02/2026",
+            "text": "Si te gustan los juegos retro, esta es tu consola. No busques más. Tiene todo lo que necesitas para horas de diversión.",
+            "rating": 5,
+            "isVerified": true,
+            "image": ""
+          },
+          {
+            "id": "34",
+            "name": "Irene G.",
+            "date": "01/03/2026",
+            "text": "Todo correcto. El producto es de calidad y el servicio de entrega, impecable. Muy contenta con la compra.",
+            "rating": 5,
+            "isVerified": true,
+            "image": ""
+          },
+          {
+            "id": "35",
+            "name": "Miguel A.",
+            "date": "13/01/2026",
+            "text": "La consola es una pasada y el envío súper rápido. Ideal para los que crecimos en los 90. ¡La recomiendo!",
+            "rating": 5,
+            "isVerified": true,
+            "image": ""
+          },
+          {
+            "id": "36",
+            "name": "Aitana C.",
+            "date": "26/02/2026",
+            "text": "¡Qué gran invento! Es increíble tener tantos juegos clásicos en un dispositivo tan pequeño. Funciona de maravilla.",
+            "rating": 5,
+            "isVerified": true,
+            "image": ""
+          },
+          {
+            "id": "37",
+            "name": "Jorge T.",
+            "date": "08/03/2026",
+            "text": "La compré para mis hijos y ahora el que más juega soy yo. Un viaje a mi infancia en toda regla. ¡Muy recomendable!",
+            "isVerified": true,
+            "image": ""
+          },
+          {
+            "id": "38",
+            "name": "Candela F.",
+            "date": "07/01/2026",
+            "text": "Me llegó súper rápido, en menos de lo que esperaba. La consola es genial, muy fácil de usar y con juegos para todos los gustos.",
+            "rating": 5,
+            "isVerified": true,
+            "image": ""
+          },
+          {
+            "id": "39",
+            "name": "Rodrigo B.",
+            "date": "20/02/2026",
+            "text": "Si dudas en comprarla, no lo hagas más. Es una maravilla. Funciona perfectamente y la nostalgia es real. ¡Cómprala!",
+            "rating": 5,
+            "isVerified": true,
+            "image": ""
+          },
+          {
+            "id": "40",
+            "name": "Emma Z.",
+            "date": "04/03/2026",
+            "text": "La calidad de los materiales es buena y los mandos son muy cómodos. Muy buena compra, la verdad. Satisfecha.",
+            "rating": 5,
+            "isVerified": true,
+            "image": ""
+          },
+          {
+            "id": "41",
+            "name": "Gonzalo H.",
+            "date": "15/01/2026",
+            "text": "Una pasada de consola retro. Tiene todos los juegos que recordaba y más. La entrega fue rapidísima.",
+            "rating": 5,
+            "isVerified": true,
+            "image": ""
+          }
+        ]
+      },
+      "gameSearchSection": {
+        "imageSrc": "/images/aa.png"
+      },
+      "faqSection": {
+        "title": "Preguntas Frecuentes",
+        "faqs": [
+          {
+            "question": "¿Se pueden guardar las partidas?",
+            "answer": "¡Sí! La mayoría de los juegos te permiten guardar tu progreso. Podrás continuar tus aventuras justo donde las dejaste."
+          },
+          {
+            "question": "¿Tiene instrucciones?",
+            "answer": "La consola es muy intuitiva, solo tienes que conectarla y jugar. Para los juegos, la mayoría incluyen tutoriales o puedes encontrar guías fácilmente en internet."
+          },
+          {
+            "question": "¿Vienen incluidos los juegos o solo la pistola?",
+            "answer": "Si adquieres uno de nuestros paquetes combinados, recibirás nuestra tarjeta USB de 1 TB con más de 15 000 títulos arcade clásicos listos para jugar."
+          },
+          {
+            "question": "¿La calidad de imagen es buena en televisores 4K?",
+            "answer": "Sí, la consola se conecta por HDMI y ofrece una resolución HD que se reescala muy bien en televisores 4K. Los juegos se ven nítidos y con colores vivos, manteniendo su encanto retro."
+          },
+          {
+            "question": "¿Puedo agregar más juegos?",
+            "answer": "¡Por supuesto! La consola viene con una tarjeta de memoria extraíble. Puedes conectar la tarjeta a tu ordenador y añadir fácilmente más juegos si lo deseas."
+          },
+          {
+            "question": "¿Necesito internet para jugar?",
+            "answer": "No, no necesitas conexión a internet. Todos los juegos están preinstalados en la consola. Es conectar y jugar, como en los viejos tiempos."
+          },
+          {
+            "question": "¿Pueden jugar dos personas al mismo tiempo?",
+            "answer": "Sí, nuestro sistema es compatible con el modo multijugador local. Al seleccionar el Conjunto para 2 jugadores, recibirás dos pistolas que funcionan de forma independiente en la misma pantalla para enfrentamientos cara a cara."
+          },
+          {
+            "question": "¿El envío es rápido?",
+            "answer": "¡Muy rápido! Procesamos los pedidos en 24 horas y el envío suele tardar entre 24 y 72 horas laborables en llegar a tu casa."
+          },
+          {
+            "question": "Parece demasiado bueno para ser verdad, ¿es una estafa?",
+            "answer": "¡Entendemos el escepticismo! Gameover es un proyecto creado por fans para fans. Utilizamos tecnología infrarroja estándar de la industria y ofrecemos pagos seguros con Bizum, garantizando la total protección del comprador. Consulta nuestros vídeos de demostración en redes sociales para ver el sistema en acción."
+          }
+        ]
+      }
+    },
+    "aboutPage": {
+      "hero": {
+        "title": "Creado por gamers, para gamers.",
+        "description": "Somos un grupo de apasionados por los videojuegos que crecimos en la era dorada de los 8 y 16 bits. Gameover nació de nuestra nostalgia y del deseo de preservar la magia de los clásicos para las nuevas generaciones.<br /><br />Nuestra misión es simple: ofrecer la experiencia retro más auténtica y accesible, todo en una sola consola.",
+        "imageSrc": "/images/banner2.png"
+      },
+      "story": {
+        "title": "Nuestra Historia",
+        "paragraphs": [
+          "Todo comenzó en un garaje, entre viejas consolas, cartuchos y el sonido inconfundible de los salones recreativos. Éramos un grupo de amigos que se negaba a dejar que los mejores juegos de la historia se perdieran en el olvido.",
+          "Pasamos años investigando, probando y perfeccionando la forma de emular cientos de sistemas en un solo dispositivo que fuera potente, fácil de usar y, sobre todo, fiel a la experiencia original.",
+          "Así nació la Consola Gameover®. No es solo un producto, es nuestro homenaje a los pixeles que nos formaron, a las tardes con amigos y a la pura diversión que solo un buen videojuego puede ofrecer."
+        ],
+        "imageSrc": "/images/mario.png"
+      },
+      "mission": {
+        "title": "Nuestra Misión",
+        "paragraphs": [
+          "En Gameover, creemos que los videojuegos son más que un pasatiempo; son cultura, arte y una fuente inagotable de buenos recuerdos. Nuestra misión es revivir la magia de los juegos clásicos y hacerla accesible para todos.",
+          "Nos esforzamos por ofrecer un producto de la más alta calidad, con un catálogo de juegos inmenso y un soporte técnico cercano y apasionado, para que tu única preocupación sea decidir a qué clásico vas a jugar hoy."
+        ]
+      }
+    },
+    "communityPage": {
+      "hero": {
+        "title": "Más que una consola. Una <span class=\"text-primary\">experiencia.</span>",
+        "subtitle": "Con la compra de tu Consola Gameover®, te regalamos 1 año de acceso a un mundo de servicios exclusivos diseñados para llevar tu pasión por lo retro al siguiente nivel.",
+        "buttonText": "Comprar Consola Gameover® Ahora",
+        "buttonLink": ""
+      },
+      "features": {
+        "title": "Tu Membresía Incluye:",
+        "subtitle": "Todo lo que un verdadero amante de los videojuegos clásicos podría desear, gratis durante 1 año.",
+        "items": [
+          {
+            "title": "Wiki de Secretos",
+            "description": "Una base de datos colaborativa donde la comunidad comparte trucos, guías y todos los secretos de tus juegos favoritos.",
+            "icon": "Book"
+          },
+          {
+            "title": "Retos Semanales",
+            "description": "Compite por la máxima puntuación en clásicos como Galaga o Pac-Man y gana insignias exclusivas para tu perfil.",
+            "icon": "Users"
+          },
+          {
+            "title": "Actualizaciones Exclusivas",
+            "description": "Sé el primero en probar las nuevas versiones del firmware de la consola, con mejoras de rendimiento y nuevos emuladores.",
+            "icon": "Download"
+          },
+          {
+            "title": "Sistema de Logros",
+            "description": "Desbloquea trofeos y logros por completar juegos y superar desafíos, y muéstralos con orgullo en tu perfil.",
+            "icon": "Star"
+          },
+          {
+            "title": "Soporte Técnico VIP",
+            "description": "Resuelve tus dudas al instante con un canal de soporte prioritario donde nuestro equipo y expertos te ayudarán.",
+            "icon": "LifeBuoy"
+          },
+          {
+            "title": "Noches de Juego en Directo",
+            "description": "Únete a nuestras sesiones de streaming donde jugamos a clásicos, compartimos anécdotas y charlamos con la comunidad.",
+            "icon": "Gamepad2"
+          }
+        ]
+      },
+      "pricing": {
+        "title": "",
+        "subtitle": "",
+        "card": {
+          "planName": "",
+          "price": "4,99€",
+          "period": "/mes",
+          "offer": "1 AÑO GRATIS CON TU CONSOLA GAMEOVER®",
+          "features": [],
+          "buttonText": "Renovar (después de 1 año)"
+        }
+      }
+    }
+  }
+}

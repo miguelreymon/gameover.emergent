@@ -1,0 +1,38 @@
+{
+  "header": {
+    "logo": "https://picsum.photos/seed/gameover-logo/200/50",
+    "announcementBar": "🤍​ OFERTA BLACKFRIDAY SOLO HOY –50 % DE DESCUENTO Y ENVIO GRATIS 🤍"
+  },
+  "footer": {
+    "brandName": "Game Over",
+    "brandSlogan": "Tu portal a la nostalgia de los videojuegos.",
+    "subscriptionTitle": "Únete a nuestra comunidad",
+    "subscriptionSlogan": "Recibe ofertas exclusivas, noticias y más.",
+    "whatsAppNumber": "680414307"
+  },
+  "theme": {
+    "primary": "195 71% 33%",
+    "accent": "140 60% 45%",
+    "background": "0 0% 100%",
+    "foreground": "240 10% 3.9%"
+  },
+  "homePage": {
+    "heroImage": "https://picsum.photos/seed/retro-gaming/1200/600",
+    "productSection": {
+      "product": {
+        "name": "Consola Gameover",
+        "distributorBadge": "Distribuidor oficial en España",
+        "description": "Disfruta como antes en tu casa. Sin necesidad de introducir monedas de 25 pesetas."
+      }
+    },
+    "featureSection1": {
+      "title": "🎮 Las consolas retro están de moda.",
+      "text": "Es inevitable nuestro amor por los orígenes del videojuego, en particular los de los 80 y principios de los 90. ¿Nostalgia por los tiempos aquellos en los que jugabas al Metal Slug, Super Mario, Metal Gear Solid o Bomberman? Aquí te ofrecemos una amplia gama de videojuegos y te ofrecemos soporte técnico para que puedas mantener tu consola retro actualizada.",
+      "imageSrc": "https://picsum.photos/seed/retro-console/800/600"
+    },
+    "loQueEntrenarasSection": {
+      "title": "¿CÓMO CONECTAR LA CONSOLA?",
+      "imageSrc": "https://picsum.photos/seed/connect-console/600/400"
+    }
+  }
+}
