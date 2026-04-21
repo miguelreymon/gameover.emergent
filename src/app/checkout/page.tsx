@@ -5,12 +5,16 @@ import { useState, useEffect } from 'react';
 import SquarePaymentForm from '@/components/checkout/SquarePaymentForm';
 import OrderSummary from '@/components/checkout/OrderSummary';
 import { useCart } from '@/context/CartContext';
+import { useConfig } from '@/context/ConfigContext';
+import { siteContent as defaultContent } from '@/lib/content';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
 export type PaymentMethod = 'card' | 'cod' | 'bizum';
 
 export default function CheckoutPage() {
+  const config = useConfig();
+  const siteContent = config || defaultContent;
   const { cartItems } = useCart();
   const { toast } = useToast();
   const [couponCode, setCouponCode] = useState('');
@@ -46,31 +50,24 @@ export default function CheckoutPage() {
 
   const handleApplyCoupon = () => {
     const currentTotal = subtotal + shippingFee;
-    if (couponCode.toLowerCase() === 'mike') {
-      const newDiscount = currentTotal > 1 ? currentTotal - 1 : 0;
-      setDiscount(newDiscount);
-      setIsDiscountApplied(true);
-      toast({
-        title: '¡Cupón de Leyenda aplicado!',
-        description: `Has conseguido la consola por solo 1€.`,
-      });
-    } else if (couponCode.toLowerCase() === 'mike2') {
-      const newDiscount = currentTotal;
-      setDiscount(newDiscount);
-      setIsDiscountApplied(true);
-      toast({
-        title: '¡Cupón de Dios aplicado!',
-        description: '¡Mamma Mia! Tu pedido es totalmente gratis.',
-      });
-    } else if (couponCode.toLowerCase() === 'extra20') {
-      const newDiscount = 10;
-      setDiscount(newDiscount);
-      setIsDiscountApplied(true);
-      toast({
-        title: '¡Cupón aplicado!',
-        description: 'Has conseguido un descuento de 10€.',
-      });
-    } else {
+    const code = couponCode.toLowerCase().trim();
+
+    // Read coupons from siteContent (editable in /admin)
+    const contentCoupons = Array.isArray((siteContent as any)?.coupons)
+      ? (siteContent as any).coupons
+      : [];
+
+    // Legacy hardcoded fallbacks (kept so nothing breaks if coupons not configured)
+    const legacy: Record<string, { type: string; value: number; title: string; description: string }> = {
+      mike: { type: 'finalPrice', value: 1, title: '¡Cupón de Leyenda aplicado!', description: 'Has conseguido la consola por solo 1€.' },
+      mike2: { type: 'free', value: 0, title: '¡Cupón de Dios aplicado!', description: '¡Mamma Mia! Tu pedido es totalmente gratis.' },
+      extra20: { type: 'amountOff', value: 10, title: '¡Cupón aplicado!', description: 'Has conseguido un descuento de 10€.' },
+    };
+
+    const found = contentCoupons.find((c: any) => (c.code || '').toLowerCase() === code);
+    const coupon = found || legacy[code];
+
+    if (!coupon) {
       setDiscount(0);
       setIsDiscountApplied(false);
       toast({
@@ -78,7 +75,24 @@ export default function CheckoutPage() {
         title: 'Cupón no válido',
         description: 'El código de cupón introducido no es correcto.',
       });
+      return;
     }
+
+    let newDiscount = 0;
+    if (coupon.type === 'finalPrice') {
+      newDiscount = currentTotal > coupon.value ? currentTotal - coupon.value : 0;
+    } else if (coupon.type === 'free') {
+      newDiscount = currentTotal;
+    } else if (coupon.type === 'amountOff') {
+      newDiscount = coupon.value;
+    }
+
+    setDiscount(newDiscount);
+    setIsDiscountApplied(true);
+    toast({
+      title: coupon.title || '¡Cupón aplicado!',
+      description: coupon.description || '',
+    });
   };
 
   if (isLoading) {

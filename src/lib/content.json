@@ -16,7 +16,7 @@
   "siteContent": {
     "header": {
       "logo": "/images/aaa.png",
-      "announcementBar": "🤍​ LIQUIDACION DE STOCK SOLO HOY –50 % DTO Y ENVIO GRATIS 🤍"
+      "announcementBar": "🤍​ LIQUIDACION DE STOCK SOLO HOY –50 % DTO Y ENVIO GRATIS 🤍"
     },
     "footer": {
       "brandName": "Gameover",
@@ -154,8 +154,16 @@
             "colors": {
               "label": "COLOR",
               "options": [
-                { "id": "black", "name": "Negro", "image": "/images/11.webp" },
-                { "id": "blue", "name": "Azul", "image": "/images/22.webp" }
+                {
+                  "id": "black",
+                  "name": "Negro",
+                  "image": "/images/11.webp"
+                },
+                {
+                  "id": "blue",
+                  "name": "Azul",
+                  "image": "/images/22.webp"
+                }
               ]
             }
           }

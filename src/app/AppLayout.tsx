@@ -10,12 +10,17 @@ import { siteContent as defaultContent } from '@/lib/content';
 export function AppLayout({ children, initialConfig }: { children: React.ReactNode, initialConfig: any }) {
   const pathname = usePathname();
   const isCheckoutPage = pathname === '/checkout';
+  const isAdminPage = !!pathname && pathname.startsWith('/admin');
 
   // Use config from initialConfig or fallback to siteContent if needed
   const config = initialConfig || defaultContent;
   const announcementBar = config?.header?.announcementBar || "🤍​ OFERTA BLACKFRIDAY SOLO HOY –50 % DE DESCUENTO Y ENVIO GRATIS 🤍";
   const whatsAppNumber = config?.footer?.whatsAppNumber || "680414307";
   const cleanNumber = whatsAppNumber.replace(/\D/g, '');
+
+  if (isAdminPage) {
+    return <ConfigProvider initialConfig={initialConfig}>{children}</ConfigProvider>;
+  }
 
   return (
     <ConfigProvider initialConfig={initialConfig}>
