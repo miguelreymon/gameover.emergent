@@ -13,7 +13,7 @@ import { siteContent as defaultContent } from '@/lib/content';
 import { useConfig } from '@/context/ConfigContext';
 import { getImage } from '@/lib/images';
 
-const navLinks = [
+const defaultNavLinks = [
     { text: 'Consola Gameover®', href: '/' },
     { text: 'Comunidad', href: '/comunidad' },
     { text: 'Sobre Nosotros', href: '/sobre-nosotros' },
@@ -30,6 +30,10 @@ export function Header() {
   if (!siteContent || !siteContent.header) {
     return null;
   }
+
+  const navLinks = Array.isArray((siteContent as any).menu) && (siteContent as any).menu.length
+    ? (siteContent as any).menu
+    : defaultNavLinks;
 
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -50,7 +54,7 @@ export function Header() {
               <Menu className="h-6 w-6" />
             </Button>
             <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-primary-foreground">
-                {navLinks.map((link) => (
+                {navLinks.map((link: {text: string; href: string}) => (
                     <Link key={link.href} href={link.href} className="hover:opacity-80 transition-opacity">{link.text}</Link>
                 ))}
             </nav>

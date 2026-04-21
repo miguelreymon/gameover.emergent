@@ -122,8 +122,9 @@ function AddBtn({ onClick, children }: { onClick: () => void; children: React.Re
 
 const TABS = [
   'header',
+  'menu',
   'footer',
-  'producto',
+  'productos',
   'home',
   'reviews',
   'faq',
@@ -199,8 +200,9 @@ export default function AdminDashboard({ initialContent }: { initialContent: any
 
       <div className="space-y-6">
         {tab === 'header' && <HeaderTab sc={sc} update={update} />}
+        {tab === 'menu' && <MenuTab sc={sc} update={update} />}
         {tab === 'footer' && <FooterTab sc={sc} update={update} />}
-        {tab === 'producto' && <ProductTab sc={sc} update={update} />}
+        {tab === 'productos' && <ProductsTab sc={sc} update={update} />}
         {tab === 'home' && <HomeTab sc={sc} update={update} />}
         {tab === 'reviews' && <ReviewsTab sc={sc} update={update} />}
         {tab === 'faq' && <FaqTab sc={sc} update={update} />}
@@ -359,26 +361,201 @@ function FooterTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => voi
   );
 }
 
-function ProductTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => void) => void }) {
-  const p = sc.homePage.productSection.product;
-  const setP = (mut: (p: AnyObj) => void) =>
-    update((d) => mut(d.siteContent.homePage.productSection.product));
+function ProductsTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => void) => void }) {
+  const products: AnyObj[] = sc.products || [];
+  const [editing, setEditing] = useState<number | null>(null);
+
+  const setProducts = (mut: (arr: AnyObj[]) => void) =>
+    update((d) => {
+      if (!d.siteContent.products) d.siteContent.products = [];
+      mut(d.siteContent.products);
+    });
+
+  const addProduct = () => {
+    const base: AnyObj = {
+      id: `prod-${Date.now()}`,
+      slug: `nuevo-producto-${Date.now()}`,
+      name: 'Nuevo producto',
+      shortDescription: 'Descripción breve del producto',
+      cartImage: '/images/aa.png',
+      variants: [
+        { id: 'v1', name: 'Única', price: 0, originalPrice: 0, isBestSeller: true },
+      ],
+      images: [
+        { id: 'img1', src: '/images/aa.png', alt: '', hint: '' },
+      ],
+      whatsInTheBox: [],
+      productInfoAccordion: {
+        shipping: {
+          title: 'Envío y seguimiento',
+          freeShippingTitle: '📦 Envío Gratis',
+          freeShippingContent: '',
+          trackingTitle: '🚚 Seguimiento',
+          trackingContent: '',
+          contactInfo: '',
+        },
+        warranty: {
+          title: 'Garantía y Devoluciones',
+          satisfactionGuarantee: '',
+          returnsPolicy: '',
+        },
+        extra: { title: 'Extra', content: '' },
+      },
+      distributorBadge: '',
+      purchaseBenefits: { gifts: '', games: '', tv: '' },
+      countdownOffer: { activeText: '', expiredText: '' },
+      selectionOptions: { colors: { label: 'COLOR', options: [] } },
+    };
+    setProducts((arr) => arr.push(base));
+    setEditing(products.length);
+  };
+
+  const duplicateProduct = (i: number) => {
+    const copy: AnyObj = clone(products[i]);
+    copy.id = `prod-${Date.now()}`;
+    copy.slug = `${copy.slug || 'producto'}-copia-${Date.now()}`;
+    copy.name = `${copy.name} (copia)`;
+    setProducts((arr) => arr.push(copy));
+  };
+
+  if (editing !== null && products[editing]) {
+    return (
+      <>
+        <div className="flex items-center justify-between mb-2">
+          <button
+            onClick={() => setEditing(null)}
+            className="text-sm text-slate-600 hover:text-slate-900"
+            data-testid="back-to-products-list"
+          >
+            ← Volver al listado
+          </button>
+          <span className="text-sm text-slate-500">
+            Editando: <strong>{products[editing].name}</strong>
+          </span>
+        </div>
+        <ProductEditor
+          product={products[editing]}
+          onChange={(mut) => setProducts((arr) => mut(arr[editing]))}
+        />
+      </>
+    );
+  }
+
+  return (
+    <Section title={`Productos (${products.length})`}>
+      <p className="text-sm text-slate-600">
+        Aquí gestionas todos los productos del catálogo. Cada uno tiene su propia página en{' '}
+        <code>/producto/[slug]</code>. La home muestra todos en cuadrícula automáticamente.
+      </p>
+      <Field label="Producto destacado (por slug)">
+        <select
+          value={sc.featuredProductSlug || ''}
+          onChange={(e) => update((d) => (d.siteContent.featuredProductSlug = e.target.value))}
+          className="w-full border rounded px-3 py-2 text-sm"
+          data-testid="featured-product-select"
+        >
+          {products.map((p) => (
+            <option key={p.slug} value={p.slug}>
+              {p.name} ({p.slug})
+            </option>
+          ))}
+        </select>
+      </Field>
+      <div className="space-y-2 mt-4">
+        {products.map((p, i) => (
+          <div
+            key={p.slug || i}
+            className="flex items-center gap-3 bg-slate-50 border rounded p-3"
+            data-testid={`product-row-${p.slug}`}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={p.cartImage || '/images/aa.png'}
+              alt=""
+              className="w-14 h-14 object-cover rounded"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold truncate">{p.name}</p>
+              <p className="text-xs text-slate-500">
+                /producto/{p.slug} · {(p.variants || []).length} variantes
+              </p>
+            </div>
+            <button
+              onClick={() => setEditing(i)}
+              className="bg-slate-900 text-white px-3 py-1.5 rounded text-sm font-medium"
+              data-testid={`edit-product-${p.slug}`}
+            >
+              Editar
+            </button>
+            <button
+              onClick={() => duplicateProduct(i)}
+              className="bg-slate-200 hover:bg-slate-300 px-3 py-1.5 rounded text-sm"
+              data-testid={`duplicate-product-${p.slug}`}
+            >
+              Duplicar
+            </button>
+            <button
+              onClick={() => {
+                if (confirm(`¿Eliminar "${p.name}"? Esta acción no se puede deshacer.`)) {
+                  setProducts((arr) => arr.splice(i, 1));
+                }
+              }}
+              className="text-red-600 hover:text-red-800 text-sm font-medium px-2"
+              data-testid={`delete-product-${p.slug}`}
+            >
+              Eliminar
+            </button>
+          </div>
+        ))}
+      </div>
+      <AddBtn onClick={addProduct}>+ Añadir producto nuevo</AddBtn>
+    </Section>
+  );
+}
+
+function ProductEditor({
+  product,
+  onChange,
+}: {
+  product: AnyObj;
+  onChange: (mut: (p: AnyObj) => void) => void;
+}) {
+  const p = product;
+  const setP = onChange;
 
   return (
     <>
-      <Section title="Datos básicos del producto">
+      <Section title="Datos básicos">
         <div className="grid grid-cols-2 gap-4">
           <Field label="ID interno">
             <Text value={p.id} onChange={(v) => setP((p) => (p.id = v))} />
           </Field>
-          <Field label="Nombre mostrado">
-            <Text value={p.name} onChange={(v) => setP((p) => (p.name = v))} />
+          <Field label="Slug (URL)">
+            <Text
+              value={p.slug || ''}
+              onChange={(v) =>
+                setP((p) => (p.slug = v.toLowerCase().replace(/[^a-z0-9-]/g, '-')))
+              }
+            />
           </Field>
         </div>
-        <Field label="Badge distribuidor">
-          <Text value={p.distributorBadge} onChange={(v) => setP((p) => (p.distributorBadge = v))} />
+        <Field label="Nombre">
+          <Text value={p.name} onChange={(v) => setP((p) => (p.name = v))} />
         </Field>
-        <Field label="Imagen del carrito">
+        <Field label="Descripción corta (se muestra en la cuadrícula de la home)">
+          <TextArea
+            value={p.shortDescription || ''}
+            rows={2}
+            onChange={(v) => setP((p) => (p.shortDescription = v))}
+          />
+        </Field>
+        <Field label="Badge distribuidor">
+          <Text
+            value={p.distributorBadge || ''}
+            onChange={(v) => setP((p) => (p.distributorBadge = v))}
+          />
+        </Field>
+        <Field label="Imagen principal (miniatura y carrito)">
           <ImagePicker value={p.cartImage} onChange={(v) => setP((p) => (p.cartImage = v))} />
         </Field>
       </Section>
@@ -388,22 +565,13 @@ function ProductTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => vo
           <div key={i} className="border rounded p-3 space-y-2 bg-slate-50">
             <div className="grid grid-cols-4 gap-2">
               <Field label="ID">
-                <Text
-                  value={v.id}
-                  onChange={(x) => setP((p) => (p.variants[i].id = x))}
-                />
+                <Text value={v.id} onChange={(x) => setP((p) => (p.variants[i].id = x))} />
               </Field>
               <Field label="Nombre">
-                <Text
-                  value={v.name}
-                  onChange={(x) => setP((p) => (p.variants[i].name = x))}
-                />
+                <Text value={v.name} onChange={(x) => setP((p) => (p.variants[i].name = x))} />
               </Field>
               <Field label="Precio €">
-                <Num
-                  value={v.price}
-                  onChange={(x) => setP((p) => (p.variants[i].price = x))}
-                />
+                <Num value={v.price} onChange={(x) => setP((p) => (p.variants[i].price = x))} />
               </Field>
               <Field label="Precio original €">
                 <Num
@@ -417,11 +585,9 @@ function ProductTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => vo
                 <input
                   type="checkbox"
                   checked={!!v.isBestSeller}
-                  onChange={(e) =>
-                    setP((p) => (p.variants[i].isBestSeller = e.target.checked))
-                  }
+                  onChange={(e) => setP((p) => (p.variants[i].isBestSeller = e.target.checked))}
                 />
-                Es la más vendida (destacada)
+                Más vendida
               </label>
               <RemoveBtn onClick={() => setP((p) => p.variants.splice(i, 1))} />
             </div>
@@ -429,70 +595,59 @@ function ProductTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => vo
         ))}
         <AddBtn
           onClick={() =>
-            setP((p) =>
-              p.variants.push({
-                id: 'nuevo',
-                name: 'Nueva variante',
-                price: 0,
-                originalPrice: 0,
-              })
-            )
+            setP((p) => {
+              if (!p.variants) p.variants = [];
+              p.variants.push({ id: 'nuevo', name: 'Nueva', price: 0, originalPrice: 0 });
+            })
           }
         >
           + Añadir variante
         </AddBtn>
       </Section>
 
-      <Section title="Colores disponibles">
+      <Section title="Colores">
         {(p.selectionOptions?.colors?.options || []).map((c: AnyObj, i: number) => (
           <div key={i} className="grid grid-cols-[1fr_1fr_2fr_auto] gap-2 items-end">
             <Field label="ID">
               <Text
                 value={c.id}
-                onChange={(v) =>
-                  setP((p) => (p.selectionOptions.colors.options[i].id = v))
-                }
+                onChange={(v) => setP((p) => (p.selectionOptions.colors.options[i].id = v))}
               />
             </Field>
             <Field label="Nombre">
               <Text
                 value={c.name}
-                onChange={(v) =>
-                  setP((p) => (p.selectionOptions.colors.options[i].name = v))
-                }
+                onChange={(v) => setP((p) => (p.selectionOptions.colors.options[i].name = v))}
               />
             </Field>
             <Field label="Imagen">
               <ImagePicker
                 value={c.image}
-                onChange={(v) =>
-                  setP((p) => (p.selectionOptions.colors.options[i].image = v))
-                }
+                onChange={(v) => setP((p) => (p.selectionOptions.colors.options[i].image = v))}
               />
             </Field>
-            <RemoveBtn
-              onClick={() =>
-                setP((p) => p.selectionOptions.colors.options.splice(i, 1))
-              }
-            />
+            <RemoveBtn onClick={() => setP((p) => p.selectionOptions.colors.options.splice(i, 1))} />
           </div>
         ))}
         <AddBtn
           onClick={() =>
-            setP((p) =>
+            setP((p) => {
+              if (!p.selectionOptions) p.selectionOptions = { colors: { label: 'COLOR', options: [] } };
+              if (!p.selectionOptions.colors) p.selectionOptions.colors = { label: 'COLOR', options: [] };
+              if (!p.selectionOptions.colors.options) p.selectionOptions.colors.options = [];
               p.selectionOptions.colors.options.push({
                 id: 'nuevo',
                 name: 'Nuevo',
-                image: '/images/aaa.png',
-              })
-            )
+                image: '/images/aa.png',
+              });
+            })
           }
         >
           + Añadir color
         </AddBtn>
       </Section>
 
-      <Section title="Galería de imágenes del producto">
+      <Section title="Galería de imágenes">
         {(p.images || []).map((img: AnyObj, i: number) => (
           <div key={i} className="grid grid-cols-[2fr_1fr_auto] gap-2 items-end">
             <Field label={`Imagen ${i + 1}`}>
@@ -501,25 +656,23 @@ function ProductTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => vo
                 onChange={(v) => setP((p) => (p.images[i].src = v))}
               />
             </Field>
-            <Field label="Alt (accesibilidad)">
-              <Text
-                value={img.alt}
-                onChange={(v) => setP((p) => (p.images[i].alt = v))}
-              />
+            <Field label="Alt">
+              <Text value={img.alt} onChange={(v) => setP((p) => (p.images[i].alt = v))} />
             </Field>
             <RemoveBtn onClick={() => setP((p) => p.images.splice(i, 1))} />
           </div>
         ))}
         <AddBtn
           onClick={() =>
-            setP((p) =>
+            setP((p) => {
+              if (!p.images) p.images = [];
               p.images.push({
                 id: `img-${Date.now()}`,
-                src: '/images/aaa.png',
+                src: '/images/aa.png',
                 alt: '',
                 hint: '',
-              })
-            )
+              });
+            })
           }
         >
           + Añadir imagen
@@ -531,19 +684,34 @@ function ProductTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => vo
           <Field label="Regalos">
             <Text
               value={p.purchaseBenefits?.gifts || ''}
-              onChange={(v) => setP((p) => (p.purchaseBenefits.gifts = v))}
+              onChange={(v) =>
+                setP((p) => {
+                  if (!p.purchaseBenefits) p.purchaseBenefits = {};
+                  p.purchaseBenefits.gifts = v;
+                })
+              }
             />
           </Field>
           <Field label="Juegos">
             <Text
               value={p.purchaseBenefits?.games || ''}
-              onChange={(v) => setP((p) => (p.purchaseBenefits.games = v))}
+              onChange={(v) =>
+                setP((p) => {
+                  if (!p.purchaseBenefits) p.purchaseBenefits = {};
+                  p.purchaseBenefits.games = v;
+                })
+              }
             />
           </Field>
           <Field label="TV">
             <Text
               value={p.purchaseBenefits?.tv || ''}
-              onChange={(v) => setP((p) => (p.purchaseBenefits.tv = v))}
+              onChange={(v) =>
+                setP((p) => {
+                  if (!p.purchaseBenefits) p.purchaseBenefits = {};
+                  p.purchaseBenefits.tv = v;
+                })
+              }
             />
           </Field>
         </div>
@@ -551,21 +719,25 @@ function ProductTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => vo
           <p className="text-sm font-medium mb-2">Qué incluye la caja</p>
           {(p.whatsInTheBox || []).map((item: string, i: number) => (
             <div key={i} className="flex gap-2 mb-2">
-              <Text
-                value={item}
-                onChange={(v) => setP((p) => (p.whatsInTheBox[i] = v))}
-              />
+              <Text value={item} onChange={(v) => setP((p) => (p.whatsInTheBox[i] = v))} />
               <RemoveBtn onClick={() => setP((p) => p.whatsInTheBox.splice(i, 1))} />
             </div>
           ))}
-          <AddBtn onClick={() => setP((p) => p.whatsInTheBox.push('Nuevo item'))}>
+          <AddBtn
+            onClick={() =>
+              setP((p) => {
+                if (!p.whatsInTheBox) p.whatsInTheBox = [];
+                p.whatsInTheBox.push('Nuevo item');
+              })
+            }
+          >
             + Añadir item
           </AddBtn>
         </div>
       </Section>
 
-      <Section title="Acordeón de información (envío, garantía, extra)">
-        {['shipping', 'warranty', 'extra'].map((key) => {
+      <Section title="Acordeón de información">
+        {(['shipping', 'warranty', 'extra'] as const).map((key) => {
           const block = p.productInfoAccordion?.[key] || {};
           return (
             <div key={key} className="border rounded p-3 bg-slate-50 space-y-2">
@@ -576,7 +748,11 @@ function ProductTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => vo
                     value={String(v)}
                     rows={2}
                     onChange={(val) =>
-                      setP((p) => (p.productInfoAccordion[key][k] = val))
+                      setP((p) => {
+                        if (!p.productInfoAccordion) p.productInfoAccordion = {};
+                        if (!p.productInfoAccordion[key]) p.productInfoAccordion[key] = {};
+                        p.productInfoAccordion[key][k] = val;
+                      })
                     }
                   />
                 </Field>
@@ -587,16 +763,26 @@ function ProductTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => vo
       </Section>
 
       <Section title="Countdown de oferta">
-        <Field label="Texto mientras está activa (usa {timer})">
+        <Field label="Texto activo (usa {timer})">
           <TextArea
             value={p.countdownOffer?.activeText || ''}
-            onChange={(v) => setP((p) => (p.countdownOffer.activeText = v))}
+            onChange={(v) =>
+              setP((p) => {
+                if (!p.countdownOffer) p.countdownOffer = {};
+                p.countdownOffer.activeText = v;
+              })
+            }
           />
         </Field>
-        <Field label="Texto cuando expira">
+        <Field label="Texto al expirar">
           <TextArea
             value={p.countdownOffer?.expiredText || ''}
-            onChange={(v) => setP((p) => (p.countdownOffer.expiredText = v))}
+            onChange={(v) =>
+              setP((p) => {
+                if (!p.countdownOffer) p.countdownOffer = {};
+                p.countdownOffer.expiredText = v;
+              })
+            }
           />
         </Field>
       </Section>
@@ -604,13 +790,101 @@ function ProductTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => vo
   );
 }
 
+function MenuTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => void) => void }) {
+  const menu: AnyObj[] = sc.menu || [];
+  const setM = (mut: (arr: AnyObj[]) => void) =>
+    update((d) => {
+      if (!d.siteContent.menu) d.siteContent.menu = [];
+      mut(d.siteContent.menu);
+    });
+
+  const products: AnyObj[] = sc.products || [];
+
+  return (
+    <Section title={`Menú de navegación (${menu.length})`}>
+      <p className="text-sm text-slate-600">
+        Estos enlaces aparecen en el header (y en el menú móvil). Puedes enlazar a páginas
+        internas o a productos concretos (<code>/producto/slug</code>).
+      </p>
+      <div className="space-y-2 mt-4">
+        {menu.map((item, i) => (
+          <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-end bg-slate-50 border rounded p-3">
+            <Field label={`Texto ${i + 1}`}>
+              <Text value={item.text} onChange={(v) => setM((a) => (a[i].text = v))} />
+            </Field>
+            <Field label="URL / Ruta">
+              <Text value={item.href} onChange={(v) => setM((a) => (a[i].href = v))} />
+            </Field>
+            <RemoveBtn onClick={() => setM((a) => a.splice(i, 1))} />
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2 flex-wrap mt-3">
+        <AddBtn onClick={() => setM((a) => a.push({ text: 'Nuevo', href: '/' }))}>
+          + Añadir enlace
+        </AddBtn>
+        {products.map((p) => (
+          <button
+            key={p.slug}
+            type="button"
+            onClick={() =>
+              setM((a) => a.push({ text: p.name, href: `/producto/${p.slug}` }))
+            }
+            className="bg-blue-100 hover:bg-blue-200 text-blue-900 px-3 py-2 rounded text-sm"
+            data-testid={`add-menu-product-${p.slug}`}
+          >
+            + {p.name}
+          </button>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+
 function HomeTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => void) => void }) {
   const h = sc.homePage;
   const setH = (mut: (h: AnyObj) => void) => update((d) => mut(d.siteContent.homePage));
+  const banner = sc.heroBanner || {};
+  const setB = (mut: (b: AnyObj) => void) =>
+    update((d) => {
+      if (!d.siteContent.heroBanner) d.siteContent.heroBanner = {};
+      mut(d.siteContent.heroBanner);
+    });
   return (
     <>
-      <Section title="Hero (imagen superior)">
-        <Field label="Imagen principal de arriba">
+      <Section title="Banner principal de la home (hero)">
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={banner.enabled !== false}
+            onChange={(e) => setB((b) => (b.enabled = e.target.checked))}
+            data-testid="hero-banner-enabled"
+          />
+          Mostrar banner en la home
+        </label>
+        <Field label="Imagen del banner (fondo)">
+          <ImagePicker
+            value={banner.image || ''}
+            onChange={(v) => setB((b) => (b.image = v))}
+          />
+        </Field>
+        <Field label="Título grande (opcional)">
+          <Text
+            value={banner.title || ''}
+            onChange={(v) => setB((b) => (b.title = v))}
+          />
+        </Field>
+        <Field label="Subtítulo (opcional)">
+          <Text
+            value={banner.subtitle || ''}
+            onChange={(v) => setB((b) => (b.subtitle = v))}
+          />
+        </Field>
+      </Section>
+
+      <Section title="Hero interno (imagen entre secciones)">
+        <Field label="Imagen (emuladores etc.)">
           <ImagePicker value={h.heroImage} onChange={(v) => setH((h) => (h.heroImage = v))} />
         </Field>
       </Section>

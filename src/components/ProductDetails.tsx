@@ -144,13 +144,13 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     }
     return product.variants.find(v => v.isBestSeller) || product.variants[0];
   });
-  const [selectedColor, setSelectedColor] = useState(product.selectionOptions?.colors.options[0].id || '');
+  const [selectedColor, setSelectedColor] = useState(product.selectionOptions?.colors?.options?.[0]?.id || '');
 
   const { addToCart, setIsCartOpen } = useCart();
   const router = useRouter();
 
   const handleBuyNow = () => {
-    const colorName = product.selectionOptions?.colors.options.find(o => o.id === selectedColor)?.name;
+    const colorName = product.selectionOptions?.colors?.options?.find(o => o.id === selectedColor)?.name;
     
     let fullName = `${product.name} - ${selectedVariant.name}`;
     if (colorName) fullName += ` - ${colorName}`;
@@ -284,7 +284,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         </RadioGroup>
       </div>
 
-      {product.selectionOptions && (
+      {product.selectionOptions && product.selectionOptions.colors?.options?.length > 0 && (
         <div className="space-y-6">
           {/* Color Selection */}
           <div className="space-y-3">
