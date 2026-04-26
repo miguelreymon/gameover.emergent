@@ -3,6 +3,7 @@ import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import ProductGallery from '@/components/ProductGallery';
 import ProductDetails from '@/components/ProductDetails';
+import ProductFeatureSections from '@/components/ProductFeatureSections';
 import { getContent } from '@/lib/data';
 import { siteContent as defaultContent } from '@/lib/content';
 import { getImage } from '@/lib/images';
@@ -62,6 +63,12 @@ export default async function ProductPage({
           </div>
         </div>
       </div>
+
+      {/* Secciones destacadas específicas de este producto */}
+      <ProductFeatureSections
+        featureSection1={product.featureSection1}
+        featureSection2={product.featureSection2}
+      />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <Reviews />

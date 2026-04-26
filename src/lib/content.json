@@ -176,22 +176,6 @@
         "description": "Disfruta como antes en tu casa. Sin necesidad de introducir monedas de 25 pesetas.",
         "buttonText": "COMPRAR AHORA"
       },
-      "featureSection1": {
-        "title": "🎮 Las consolas retro están de moda.",
-        "paragraphs": [
-          "Gameover te da la libertad de jugar a los shooters arcade como se concibieron originalmente: sin cables que te limiten ni distracciones que interrumpan la experiencia. Es totalmente inalámbrico , sensible y está diseñado para que te resulte natural en las manos. Te mueves con libertad, apuntas instintivamente y mantienes la puntería. Cada disparo pone a prueba tu habilidad, ofreciendo una experiencia de tiro totalmente inmersiva que recompensa la precisión y el control."
-        ],
-        "listItems": [],
-        "imageSrc": "/images/prueba.webp"
-      },
-      "featureSection2": {
-        "title": "✅​ Sincronización del retroceso",
-        "paragraphs": [
-          "Hemos creado un programa específico de sincronización de retroceso para Retro Gun . Sincroniza el retroceso y la vibración con la acción en pantalla. Ajusta la respuesta para que las pistolas, las escopetas y las ametralladoras tengan cada una su propia potencia y velocidad de retroceso , de modo que realmente se siente como si estuvieras sosteniendo un arma diferente. Sin munición, no hay retroceso. Recargar produce una vibración perceptible. Compatible con MameHooker, QmameHooker, Hook of the Reaper y DemulShooter para una retroalimentación precisa y adaptada al juego."
-        ],
-        "listItems": [],
-        "imageSrc": "/images/prueba2.webp"
-      },
       "gallerySection": {
         "images": [
           {
@@ -883,7 +867,23 @@
           }
         },
         "slug": "consola-gameover",
-        "shortDescription": "Consola retro con más de 15.000 juegos arcade, 100% inalámbrica."
+        "shortDescription": "Consola retro con más de 15.000 juegos arcade, 100% inalámbrica.",
+        "featureSection1": {
+          "title": "🎮 Las consolas retro están de moda.",
+          "paragraphs": [
+            "Gameover te da la libertad de jugar a los shooters arcade como se concibieron originalmente: sin cables que te limiten ni distracciones que interrumpan la experiencia. Es totalmente inalámbrico , sensible y está diseñado para que te resulte natural en las manos. Te mueves con libertad, apuntas instintivamente y mantienes la puntería. Cada disparo pone a prueba tu habilidad, ofreciendo una experiencia de tiro totalmente inmersiva que recompensa la precisión y el control."
+          ],
+          "listItems": [],
+          "imageSrc": "/images/prueba.webp"
+        },
+        "featureSection2": {
+          "title": "✅​ Sincronización del retroceso",
+          "paragraphs": [
+            "Hemos creado un programa específico de sincronización de retroceso para Retro Gun . Sincroniza el retroceso y la vibración con la acción en pantalla. Ajusta la respuesta para que las pistolas, las escopetas y las ametralladoras tengan cada una su propia potencia y velocidad de retroceso , de modo que realmente se siente como si estuvieras sosteniendo un arma diferente. Sin munición, no hay retroceso. Recargar produce una vibración perceptible. Compatible con MameHooker, QmameHooker, Hook of the Reaper y DemulShooter para una retroalimentación precisa y adaptada al juego."
+          ],
+          "listItems": [],
+          "imageSrc": "/images/prueba2.webp"
+        }
       },
       {
         "id": "prod-1776873530400",
@@ -990,7 +990,23 @@
           }
         },
         "slug": "consola-gameover-copia-1776873530400",
-        "shortDescription": "Consola retro con más de 15.000 juegos arcade, 100% inalámbrica."
+        "shortDescription": "Consola retro con más de 15.000 juegos arcade, 100% inalámbrica.",
+        "featureSection1": {
+          "title": "🎮 Las consolas retro están de moda.",
+          "paragraphs": [
+            "Gameover te da la libertad de jugar a los shooters arcade como se concibieron originalmente: sin cables que te limiten ni distracciones que interrumpan la experiencia. Es totalmente inalámbrico , sensible y está diseñado para que te resulte natural en las manos. Te mueves con libertad, apuntas instintivamente y mantienes la puntería. Cada disparo pone a prueba tu habilidad, ofreciendo una experiencia de tiro totalmente inmersiva que recompensa la precisión y el control."
+          ],
+          "listItems": [],
+          "imageSrc": "/images/prueba.webp"
+        },
+        "featureSection2": {
+          "title": "✅​ Sincronización del retroceso",
+          "paragraphs": [
+            "Hemos creado un programa específico de sincronización de retroceso para Retro Gun . Sincroniza el retroceso y la vibración con la acción en pantalla. Ajusta la respuesta para que las pistolas, las escopetas y las ametralladoras tengan cada una su propia potencia y velocidad de retroceso , de modo que realmente se siente como si estuvieras sosteniendo un arma diferente. Sin munición, no hay retroceso. Recargar produce una vibración perceptible. Compatible con MameHooker, QmameHooker, Hook of the Reaper y DemulShooter para una retroalimentación precisa y adaptada al juego."
+          ],
+          "listItems": [],
+          "imageSrc": "/images/prueba2.webp"
+        }
       }
     ],
     "featuredProductSlug": "consola-gameover",

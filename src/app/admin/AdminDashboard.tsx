@@ -435,6 +435,8 @@ function ProductsTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => v
         </div>
         <ProductEditor
           product={products[editing]}
+          allProducts={products}
+          editingIndex={editing}
           onChange={(mut) => setProducts((arr) => mut(arr[editing]))}
         />
       </>
@@ -515,9 +517,13 @@ function ProductsTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => v
 
 function ProductEditor({
   product,
+  allProducts,
+  editingIndex,
   onChange,
 }: {
   product: AnyObj;
+  allProducts: AnyObj[];
+  editingIndex: number;
   onChange: (mut: (p: AnyObj) => void) => void;
 }) {
   const p = product;
@@ -786,7 +792,156 @@ function ProductEditor({
           />
         </Field>
       </Section>
+
+      <CopyFeatureSectionsBlock product={p} setP={setP} allProducts={allProducts} editingIndex={editingIndex} />
+
+      {(['featureSection1', 'featureSection2'] as const).map((key, idx) => (
+        <Section key={key} title={`Sección destacada ${idx + 1} (página de producto)`}>
+          <p className="text-xs text-slate-500 -mt-2">
+            Acepta imagen (.webp/.png/.jpg) o vídeo (.mp4/.webm). Para subir un vídeo,
+            pega manualmente la ruta <code>/images/tuvideo.mp4</code>.
+          </p>
+          <Field label="Título">
+            <Text
+              value={p[key]?.title || ''}
+              onChange={(v) =>
+                setP((p) => {
+                  if (!p[key]) p[key] = {};
+                  p[key].title = v;
+                })
+              }
+            />
+          </Field>
+          <Field label="Párrafos (separados por línea en blanco)">
+            <TextArea
+              rows={5}
+              value={(p[key]?.paragraphs || []).join('\n\n')}
+              onChange={(v) =>
+                setP((p) => {
+                  if (!p[key]) p[key] = {};
+                  p[key].paragraphs = v.split('\n\n').filter(Boolean);
+                })
+              }
+            />
+          </Field>
+          <Field label="Items lista (uno por línea)">
+            <TextArea
+              rows={3}
+              value={(p[key]?.listItems || []).join('\n')}
+              onChange={(v) =>
+                setP((p) => {
+                  if (!p[key]) p[key] = {};
+                  p[key].listItems = v.split('\n').filter(Boolean);
+                })
+              }
+            />
+          </Field>
+          <Field label="Imagen o vídeo">
+            <ImagePicker
+              value={p[key]?.imageSrc || ''}
+              onChange={(v) =>
+                setP((p) => {
+                  if (!p[key]) p[key] = {};
+                  p[key].imageSrc = v;
+                })
+              }
+            />
+            <input
+              type="text"
+              placeholder="O pega aquí una ruta de vídeo: /images/video1.mp4"
+              value={p[key]?.imageSrc || ''}
+              onChange={(e) =>
+                setP((p) => {
+                  if (!p[key]) p[key] = {};
+                  p[key].imageSrc = e.target.value;
+                })
+              }
+              className="mt-2 w-full border rounded px-3 py-2 text-sm"
+            />
+          </Field>
+        </Section>
+      ))}
     </>
+  );
+}
+
+function CopyFeatureSectionsBlock({
+  product,
+  setP,
+  allProducts,
+  editingIndex,
+}: {
+  product: AnyObj;
+  setP: (mut: (p: AnyObj) => void) => void;
+  allProducts: AnyObj[];
+  editingIndex: number;
+}) {
+  const others = allProducts.filter((_, i) => i !== editingIndex);
+
+  const [source, setSource] = useState<string>(others[0]?.id || '');
+
+  if (others.length === 0) return null;
+
+  const apply = (which: 'fs1' | 'fs2' | 'both') => {
+    const src = others.find((o) => o.id === source) || others[0];
+    if (!src) return;
+    if (which === 'both') {
+      if (!confirm(`¿Copiar AMBAS secciones desde "${src.name}"? Se sobreescribirán las actuales.`))
+        return;
+    }
+    setP((p) => {
+      if (which === 'fs1' || which === 'both') {
+        p.featureSection1 = src.featureSection1 ? clone(src.featureSection1) : p.featureSection1;
+      }
+      if (which === 'fs2' || which === 'both') {
+        p.featureSection2 = src.featureSection2 ? clone(src.featureSection2) : p.featureSection2;
+      }
+    });
+  };
+
+  return (
+    <Section title="↪ Copiar secciones destacadas desde otro producto">
+      <p className="text-sm text-slate-600 -mt-2">
+        Útil cuando creas un producto nuevo: clona los textos e imagen/vídeo de otro y luego
+        edítalos. La copia es independiente (no afecta al producto origen).
+      </p>
+      <div className="grid grid-cols-1 md:grid-cols-[2fr_auto_auto_auto] gap-2 items-end">
+        <Field label="Producto origen">
+          <select
+            value={source || others[0]?.id}
+            onChange={(e) => setSource(e.target.value)}
+            className="w-full border rounded px-3 py-2 text-sm"
+          >
+            {others.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <button
+          type="button"
+          onClick={() => apply('fs1')}
+          className="bg-slate-900 text-white px-3 py-2 rounded text-sm font-medium"
+        >
+          Copiar Sección 1
+        </button>
+        <button
+          type="button"
+          onClick={() => apply('fs2')}
+          className="bg-slate-900 text-white px-3 py-2 rounded text-sm font-medium"
+        >
+          Copiar Sección 2
+        </button>
+        <button
+          type="button"
+          onClick={() => apply('both')}
+          className="bg-blue-600 text-white px-3 py-2 rounded text-sm font-medium"
+        >
+          Copiar ambas
+        </button>
+      </div>
+    </Section>
   );
 }
 
@@ -888,41 +1043,6 @@ function HomeTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => void)
           <ImagePicker value={h.heroImage} onChange={(v) => setH((h) => (h.heroImage = v))} />
         </Field>
       </Section>
-
-      {(['featureSection1', 'featureSection2'] as const).map((key) => (
-        <Section key={key} title={`Sección: ${key}`}>
-          <Field label="Título">
-            <Text
-              value={h[key]?.title || ''}
-              onChange={(v) => setH((h) => (h[key].title = v))}
-            />
-          </Field>
-          <Field label="Párrafos (uno por línea)">
-            <TextArea
-              rows={5}
-              value={(h[key]?.paragraphs || []).join('\n\n')}
-              onChange={(v) =>
-                setH((h) => (h[key].paragraphs = v.split('\n\n').filter(Boolean)))
-              }
-            />
-          </Field>
-          <Field label="Items lista (uno por línea)">
-            <TextArea
-              rows={3}
-              value={(h[key]?.listItems || []).join('\n')}
-              onChange={(v) =>
-                setH((h) => (h[key].listItems = v.split('\n').filter(Boolean)))
-              }
-            />
-          </Field>
-          <Field label="Imagen">
-            <ImagePicker
-              value={h[key]?.imageSrc || ''}
-              onChange={(v) => setH((h) => (h[key].imageSrc = v))}
-            />
-          </Field>
-        </Section>
-      ))}
 
       <Section title="Sección comunidad (dentro del home)">
         <Field label="Título">
