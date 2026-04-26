@@ -884,6 +884,113 @@
         },
         "slug": "consola-gameover",
         "shortDescription": "Consola retro con más de 15.000 juegos arcade, 100% inalámbrica."
+      },
+      {
+        "id": "prod-1776873530400",
+        "name": "Consola Gameover (copia)",
+        "cartImage": "/images/portada.webp",
+        "variants": [
+          {
+            "id": "10k",
+            "name": "1 Jugador",
+            "price": 79,
+            "originalPrice": 159
+          },
+          {
+            "id": "33k",
+            "name": "2 Jugadores",
+            "price": 139,
+            "originalPrice": 229,
+            "isBestSeller": true
+          }
+        ],
+        "images": [
+          {
+            "id": "gallery-main",
+            "src": "/images/portada.webp",
+            "alt": "Consola Gameover con mandos",
+            "hint": "retro console"
+          },
+          {
+            "id": "gallery-2",
+            "src": "/images/p1.webp",
+            "alt": "Consola en un setup de gaming",
+            "hint": "gaming setup"
+          },
+          {
+            "id": "gallery-3",
+            "src": "/images/p2.webp",
+            "alt": "Interfaz de la consola",
+            "hint": "console interface"
+          },
+          {
+            "id": "gallery-4",
+            "src": "/images/p11.webp",
+            "alt": "Captura de pantalla del juego FIFA",
+            "hint": "fifa soccer game"
+          },
+          {
+            "id": "gallery-5",
+            "src": "/images/p12.webp",
+            "alt": "Colección de juegos retro",
+            "hint": "retro games"
+          }
+        ],
+        "whatsInTheBox": [
+          "1 Consola Gameover®",
+          "2 Mandos inalámbricos",
+          "1 Cable HDMI",
+          "1 Cable de alimentación USB",
+          "1 Manual de instrucciones"
+        ],
+        "productInfoAccordion": {
+          "shipping": {
+            "title": "Envío y seguimiento",
+            "freeShippingTitle": "📦 Envío Gratis",
+            "freeShippingContent": "Ofrecemos envío gratuito con MRW en todos los pedidos. El tiempo estimado de envío es de 2 a 3 días hábiles desde el momento en que se procesa tu pedido.",
+            "trackingTitle": "🚚 Seguimiento de tu pedido",
+            "trackingContent": "Tu número de seguimiento estará disponible inmediatamente después de realizar tu compra, lo que te permitirá monitorear el estado de tu pedido en tiempo real.",
+            "contactInfo": "Si tienes cualquier duda, no dudes en contactarnos. 😊"
+          },
+          "warranty": {
+            "title": "Garantía y Devoluciónes",
+            "satisfactionGuarantee": "Ofrecemos una Garantía Total de 30 días.",
+            "returnsPolicy": "Si después de probar la Consola Gameover® no quedas satisfecha o surge cualquier problema, nos encargamos de todo y asumimos todos los costes de devolución."
+          },
+          "extra": {
+            "title": "Soporte Técnico",
+            "content": "Nuestro equipo de soporte está disponible las 24 horas para ayudarte con cualquier duda o problema técnico que puedas tener con tu consola."
+          }
+        },
+        "distributorBadge": "Distribuidor oficial en España y Europsa",
+        "purchaseBenefits": {
+          "gifts": "Plug & Play en 30 segundos.",
+          "games": "Más de 15.000 juegos arcade.",
+          "tv": "Funciona con cualquier TV"
+        },
+        "countdownOffer": {
+          "activeText": "Haz tu pedido antes de <strong>{timer}</strong> para conseguir la oferta y envio gratis",
+          "expiredText": "La oferta de 1 año de membresía gratis ha terminado."
+        },
+        "selectionOptions": {
+          "colors": {
+            "label": "COLOR",
+            "options": [
+              {
+                "id": "black",
+                "name": "Negro",
+                "image": "/images/11.webp"
+              },
+              {
+                "id": "blue",
+                "name": "Azul",
+                "image": "/images/22.webp"
+              }
+            ]
+          }
+        },
+        "slug": "consola-gameover-copia-1776873530400",
+        "shortDescription": "Consola retro con más de 15.000 juegos arcade, 100% inalámbrica."
       }
     ],
     "featuredProductSlug": "consola-gameover",
