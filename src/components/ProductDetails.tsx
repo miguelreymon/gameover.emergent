@@ -23,7 +23,11 @@ import { Badge } from '@/components/ui/badge';
 import ProductInfoAccordion from './ProductInfoAccordion';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import CustomerReviewsCarousel from './CustomerReviewsCarousel';
+import dynamic from 'next/dynamic';
+const CustomerReviewsCarousel = dynamic(() => import('./CustomerReviewsCarousel'), {
+  ssr: false,
+  loading: () => <div className="py-6 min-h-[200px]" />,
+});
 import { useRouter } from 'next/navigation';
 import { siteContent } from '@/lib/content';
 import { getImage } from '@/lib/images';
@@ -384,6 +388,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           width={600} 
           height={120} 
           className="w-full h-auto"
+          loading="lazy"
           referrerPolicy="no-referrer"
         />
       </div>

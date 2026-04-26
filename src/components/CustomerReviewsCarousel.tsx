@@ -1,8 +1,7 @@
-
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Carousel,
   CarouselContent,
@@ -24,36 +23,93 @@ import { siteContent as defaultContent } from '@/lib/content';
 import { useConfig } from '@/context/ConfigContext';
 import { getImage } from '@/lib/images';
 
+/**
+ * Vídeo perezoso: solo carga el src cuando el slide entra en el viewport,
+ * y solo reproduce cuando es realmente visible. Ahorra ~25 MB en carga inicial.
+ */
+function LazyVideo({ src, className }: { src: string; className?: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    // 1) Cuando el contenedor está cerca del viewport → empezamos a descargar
+    const loadObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setShouldLoad(true);
+            loadObserver.disconnect();
+          }
+        });
+      },
+      { rootMargin: '200px' }
+    );
+    loadObserver.observe(el);
+
+    // 2) Solo se reproduce cuando es realmente visible
+    const playObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const v = videoRef.current;
+          if (!v) return;
+          if (entry.isIntersecting) {
+            v.play().catch(() => {});
+          } else {
+            v.pause();
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+    playObserver.observe(el);
+
+    return () => {
+      loadObserver.disconnect();
+      playObserver.disconnect();
+    };
+  }, []);
+
+  return (
+    <div ref={containerRef} className="w-full h-full">
+      {shouldLoad ? (
+        <video
+          ref={videoRef}
+          src={src}
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          className={className}
+        />
+      ) : (
+        <div className={cn(className, 'bg-slate-200 animate-pulse')} />
+      )}
+    </div>
+  );
+}
+
 export default function CustomerReviewsCarousel() {
   const config = useConfig();
   const siteContent = config || defaultContent;
   const { title, videos: customerVideos } = siteContent.homePage.customerReviewsCarouselSection;
 
-  const [selectedVideo, setSelectedVideo] = useState<typeof customerVideos[0] | null>(
-    null
-  );
-  const [api, setApi] = useState<CarouselApi>()
-  const [current, setCurrent] = useState(0)
+  const [selectedVideo, setSelectedVideo] = useState<typeof customerVideos[0] | null>(null);
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
 
   useEffect(() => {
-    if (!api) {
-      return
-    }
-
-    const handleSelect = () => {
-      setCurrent(api.selectedScrollSnap())
-    }
-
-
-
-    api.on("select", handleSelect)
-    handleSelect()
-
+    if (!api) return;
+    const handleSelect = () => setCurrent(api.selectedScrollSnap());
+    api.on('select', handleSelect);
+    handleSelect();
     return () => {
-      api.off("select", handleSelect)
-    }
-  }, [api])
-
+      api.off('select', handleSelect);
+    };
+  }, [api]);
 
   return (
     <div className="py-6">
@@ -62,25 +118,17 @@ export default function CustomerReviewsCarousel() {
       </h2>
       <Carousel
         setApi={setApi}
-        opts={{
-          align: 'start',
-          loop: true,
-        }}
+        opts={{ align: 'start', loop: true }}
         className="w-full"
       >
         <CarouselContent className="-ml-2">
-          {customerVideos.map((video, index) => (
-            <CarouselItem 
-              key={video.id} 
-              className="pl-2 basis-1/3"
-            >
+          {customerVideos.map((video) => (
+            <CarouselItem key={video.id} className="pl-2 basis-1/3">
               <div className="p-1">
                 <Dialog
                   open={selectedVideo?.id === video.id}
-                  onOpenChange={open => {
-                    if (!open) {
-                      setSelectedVideo(null);
-                    }
+                  onOpenChange={(open) => {
+                    if (!open) setSelectedVideo(null);
                   }}
                 >
                   <DialogTrigger asChild>
@@ -90,12 +138,8 @@ export default function CustomerReviewsCarousel() {
                     >
                       <Card className="overflow-hidden">
                         <CardContent className="p-0 aspect-[9/16] relative flex items-center justify-center">
-                          <video
+                          <LazyVideo
                             src={getImage(video.src)}
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
                             className="w-full h-full object-cover"
                           />
                           <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-opacity opacity-0 hover:opacity-100">
@@ -111,7 +155,7 @@ export default function CustomerReviewsCarousel() {
                     </DialogTitle>
                     <div className="w-full h-full">
                       <video
-                        src={getImage(selectedVideo?.src || "")}
+                        src={getImage(selectedVideo?.src || '')}
                         controls
                         autoPlay
                         className="w-full h-full rounded-lg"
@@ -128,16 +172,16 @@ export default function CustomerReviewsCarousel() {
       </Carousel>
       <div className="flex justify-center pt-4">
         <div className="flex items-center gap-2">
-            {customerVideos.map((_, i) => (
-                <button
-                    key={i}
-                    onClick={() => api?.scrollTo(i)}
-                    className={cn('w-2 h-2 rounded-full', {
-                    'bg-primary': i === current,
-                    'bg-muted': i !== current,
-                    })}
-                />
-            ))}
+          {customerVideos.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => api?.scrollTo(i)}
+              className={cn('w-2 h-2 rounded-full', {
+                'bg-primary': i === current,
+                'bg-muted': i !== current,
+              })}
+            />
+          ))}
         </div>
       </div>
     </div>

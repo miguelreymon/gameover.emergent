@@ -1,13 +1,10 @@
-
-import type {NextConfig} from 'next';
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // eslint config removed (Next 16 ya no lo soporta dentro de next.config)
   experimental: {
     serverActions: {
       allowedOrigins: [
@@ -27,7 +24,11 @@ const nextConfig: NextConfig = {
       ],
     },
   },
+  // Performance: compresión + formatos modernos de imagen
+  compress: true,
   images: {
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 31536000, // 1 año cache para imágenes optimizadas
     remotePatterns: [
       {
         protocol: 'https',

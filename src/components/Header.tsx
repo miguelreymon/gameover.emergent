@@ -5,13 +5,22 @@ import Link from 'next/link';
 import { User, Menu, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
-import { CartDrawer } from './CartDrawer';
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import Image from 'next/image';
-import { MobileMenu } from './MobileMenu';
 import { siteContent as defaultContent } from '@/lib/content';
 import { useConfig } from '@/context/ConfigContext';
 import { getImage } from '@/lib/images';
+
+// Lazy: solo cargan al abrirse, no en la primera visita
+const CartDrawer = dynamic(
+  () => import('./CartDrawer').then((m) => ({ default: m.CartDrawer })),
+  { ssr: false }
+);
+const MobileMenu = dynamic(
+  () => import('./MobileMenu').then((m) => ({ default: m.MobileMenu })),
+  { ssr: false }
+);
 
 const defaultNavLinks = [
     { text: 'Consola Gameover®', href: '/' },
@@ -102,7 +111,7 @@ export function Header() {
         </div>
       </header>
       <CartDrawer />
-      <MobileMenu isOpen={isMenuOpen} setIsOpen={setIsMenuOpen} navLinks={navLinks} />
+      {isMenuOpen && <MobileMenu isOpen={isMenuOpen} setIsOpen={setIsMenuOpen} navLinks={navLinks} />}
     </>
   );
 }

@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Script from 'next/script';
 import SquarePaymentForm from '@/components/checkout/SquarePaymentForm';
 import OrderSummary from '@/components/checkout/OrderSummary';
 import { useCart } from '@/context/CartContext';
@@ -31,15 +32,10 @@ export default function CheckoutPage() {
   }, [isDiscountApplied]);
 
   useEffect(() => {
-    // Check if Square SDK is loaded
-    const checkSdk = () => {
-      if ((window as any).Square) {
-        setIsSdkLoaded(true);
-      } else {
-        setTimeout(checkSdk, 500);
-      }
-    };
-    checkSdk();
+    // Si el script ya estaba cargado en el window (navegación interna), refleja el estado
+    if ((window as any).Square) {
+      setIsSdkLoaded(true);
+    }
   }, []);
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -105,6 +101,16 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen">
+      {/* Square SDK: solo se carga aquí, no en el resto de la web */}
+      <Script
+        src={
+          process.env.NEXT_PUBLIC_SQUARE_APP_ID?.startsWith('sandbox')
+            ? 'https://sandbox.web.squarecdn.com/v1/square.js'
+            : 'https://web.squarecdn.com/v1/square.js'
+        }
+        strategy="afterInteractive"
+        onLoad={() => setIsSdkLoaded(true)}
+      />
       <div className="container mx-auto px-4 py-8 lg:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="bg-secondary p-8 rounded-lg h-fit lg:order-1">

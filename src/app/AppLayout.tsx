@@ -1,4 +1,3 @@
-
 'use client';
 
 import { usePathname } from 'next/navigation';
@@ -7,15 +6,14 @@ import { Footer } from '@/components/Footer';
 import { ConfigProvider } from '@/context/ConfigContext';
 import { siteContent as defaultContent } from '@/lib/content';
 
-export function AppLayout({ children, initialConfig }: { children: React.ReactNode, initialConfig: any }) {
+export function AppLayout({ children, initialConfig }: { children: React.ReactNode; initialConfig: any }) {
   const pathname = usePathname();
   const isCheckoutPage = pathname === '/checkout';
   const isAdminPage = !!pathname && pathname.startsWith('/admin');
 
-  // Use config from initialConfig or fallback to siteContent if needed
   const config = initialConfig || defaultContent;
-  const announcementBar = config?.header?.announcementBar || "🤍​ OFERTA BLACKFRIDAY SOLO HOY –50 % DE DESCUENTO Y ENVIO GRATIS 🤍";
-  const whatsAppNumber = config?.footer?.whatsAppNumber || "680414307";
+  const announcementBar = config?.header?.announcementBar || '🤍​ OFERTA BLACKFRIDAY SOLO HOY –50 % DE DESCUENTO Y ENVIO GRATIS 🤍';
+  const whatsAppNumber = config?.footer?.whatsAppNumber || '680414307';
   const cleanNumber = whatsAppNumber.replace(/\D/g, '');
 
   if (isAdminPage) {
@@ -27,18 +25,14 @@ export function AppLayout({ children, initialConfig }: { children: React.ReactNo
       <div className="flex flex-col min-h-screen">
         <div
           className="py-2 px-4 text-primary-foreground font-button font-bold text-sm overflow-hidden whitespace-nowrap"
-          style={{
-            backgroundColor: 'black',
-          }}
+          style={{ backgroundColor: 'black' }}
         >
-          <p className="animate-marquee inline-block">
-            {announcementBar}
-          </p>
+          <p className="animate-marquee inline-block">{announcementBar}</p>
         </div>
         <Header />
         <main className="flex-grow">{children}</main>
         {!isCheckoutPage && <Footer />}
-        
+
         {/* WhatsApp Floating Button */}
         <a
           href={`https://wa.me/${cleanNumber}`}

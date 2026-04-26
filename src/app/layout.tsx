@@ -1,4 +1,3 @@
-
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
@@ -9,34 +8,44 @@ import { siteContent as defaultContent } from '@/lib/content';
 import { AppLayout } from './AppLayout';
 import { Metadata } from 'next';
 
-// Force dynamic rendering so content.json edits (via /admin) reflect immediately
-// without requiring a full rebuild. Trade-off: pages are SSR'd on each request.
-export const dynamic = 'force-dynamic';
+// ISR: páginas estáticas regeneradas cada 60s. Edits en /admin se reflejan
+// sin redeploy (siempre que el host soporte ISR; en Vercel sí).
+// Antes era force-dynamic = SSR en cada visita = lento.
+export const revalidate = 60;
 
 import { Montserrat, Mouse_Memoirs, Poppins, Work_Sans } from 'next/font/google';
 
+// display: 'swap' evita que el texto sea invisible mientras carga la fuente
 const montserrat = Montserrat({
   subsets: ['latin'],
   weight: ['700'],
   variable: '--font-montserrat',
+  display: 'swap',
+  preload: true,
 });
 
 const mouseMemoirs = Mouse_Memoirs({
   subsets: ['latin'],
   weight: ['400'],
   variable: '--font-mouse-memoirs',
+  display: 'swap',
+  preload: false, // decorativa, no LCP
 });
 
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '700'],
   variable: '--font-poppins',
+  display: 'swap',
+  preload: true,
 });
 
 const workSans = Work_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '600', '700'], // quitado el 500 que no se usaba apenas
   variable: '--font-work-sans',
+  display: 'swap',
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -49,11 +58,16 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const config = await getContent() || defaultContent;
+  const config = (await getContent()) || defaultContent;
   const theme = config?.theme || {};
 
   return (
     <html lang="es" className={cn('h-full', montserrat.variable, mouseMemoirs.variable, poppins.variable, workSans.variable)}>
+      <head>
+        {/* Preconnect a CDN críticos para que el navegador resuelva DNS antes */}
+        <link rel="preconnect" href="https://connect.facebook.net" />
+        <link rel="dns-prefetch" href="https://www.facebook.com" />
+      </head>
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
         <style dangerouslySetInnerHTML={{ __html: `
           :root {
@@ -63,13 +77,11 @@ export default async function RootLayout({
             ${theme.foreground ? `--foreground: ${theme.foreground};` : ''}
           }
         `}} />
-        <Script 
-          src={process.env.NEXT_PUBLIC_SQUARE_APP_ID?.startsWith('sandbox') 
-            ? "https://sandbox.web.squarecdn.com/v1/square.js" 
-            : "https://web.squarecdn.com/v1/square.js"} 
-          strategy="beforeInteractive"
-        />
-        <Script id="facebook-pixel">
+
+        {/* Square SDK movido a /checkout. Antes cargaba en TODAS las páginas y bloqueaba el render. */}
+
+        {/* Facebook Pixel: lazyOnload = se carga DESPUÉS de que la página esté interactiva */}
+        <Script id="facebook-pixel" strategy="lazyOnload">
           {`
             !function(f,b,e,v,n,t,s)
             {if(f.fbq)return;n=f.fbq=function(){n.callMethod?

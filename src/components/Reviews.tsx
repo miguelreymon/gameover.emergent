@@ -51,8 +51,10 @@ export default function Reviews() {
             src={getImage(review.image)}
             alt={`Review by ${review.name}`}
             fill
+            sizes="(max-width: 640px) 50vw, 33vw"
             className="rounded-lg object-cover"
             data-ai-hint="customer photo"
+            loading="lazy"
             referrerPolicy="no-referrer"
           />
         </div>

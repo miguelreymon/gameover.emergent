@@ -20,6 +20,7 @@ export function Faq({ data }: { data?: any }) {
                 width={300}
                 height={290}
                 className="inline-block"
+                loading="lazy"
                 referrerPolicy="no-referrer"
             />
         </div>

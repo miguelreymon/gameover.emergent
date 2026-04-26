@@ -2,11 +2,20 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { useConfig } from '@/context/ConfigContext';
 import { siteContent as defaultContent } from '@/lib/content';
 import { getImage } from '@/lib/images';
-import Reviews from '@/components/Reviews';
-import { Faq } from '@/components/Faq';
+
+// Lazy: estos bloques están bajo el fold y no son críticos para el LCP
+const Reviews = dynamic(() => import('@/components/Reviews'), {
+  ssr: false,
+  loading: () => <div className="py-12 min-h-[200px]" />,
+});
+const Faq = dynamic(() => import('@/components/Faq').then(m => ({ default: m.Faq })), {
+  ssr: false,
+  loading: () => <div className="py-12 min-h-[200px]" />,
+});
 
 export default function Home() {
   const config = useConfig();
@@ -24,7 +33,7 @@ export default function Home() {
 
   return (
     <>
-      {/* Hero banner */}
+      {/* Hero banner: imagen LCP, priority + fetchPriority high */}
       {hero?.enabled !== false && hero?.image && (
         <section className="relative w-full overflow-hidden">
           <div className="relative h-[40vh] min-h-[280px] md:h-[55vh] md:min-h-[420px] w-full">
@@ -33,6 +42,7 @@ export default function Home() {
               alt={hero.title || 'Hero'}
               fill
               priority
+              fetchPriority="high"
               className="object-cover"
               referrerPolicy="no-referrer"
               sizes="100vw"
@@ -66,7 +76,7 @@ export default function Home() {
           </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {products.map((p) => {
+            {products.map((p, idx) => {
               const bestVariant =
                 (p.variants || []).find((v: any) => v.isBestSeller) || p.variants?.[0];
               const price = bestVariant?.price;
@@ -79,6 +89,7 @@ export default function Home() {
                   href={`/producto/${p.slug}`}
                   className="group bg-white rounded-xl overflow-hidden border hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
                   data-testid={`product-card-${p.slug}`}
+                  prefetch={idx < 2 /* prefetch las 2 primeras tarjetas (las más vistas) */}
                 >
                   <div className="relative aspect-square bg-slate-100 overflow-hidden">
                     <Image
@@ -88,6 +99,8 @@ export default function Home() {
                       className="object-cover group-hover:scale-105 transition-transform"
                       referrerPolicy="no-referrer"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      // Solo la 1a tarjeta se carga en alta prioridad (es above the fold en mobile)
+                      {...(idx === 0 ? { priority: true } : { loading: 'lazy' as const })}
                     />
                   </div>
                   <div className="p-5 space-y-2">
