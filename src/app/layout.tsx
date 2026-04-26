@@ -65,6 +65,8 @@ export default async function RootLayout({
     <html lang="es" className={cn('h-full', montserrat.variable, mouseMemoirs.variable, poppins.variable, workSans.variable)}>
       <head>
         {/* Preconnect a CDN críticos para que el navegador resuelva DNS antes */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://connect.facebook.net" />
         <link rel="dns-prefetch" href="https://www.facebook.com" />
       </head>

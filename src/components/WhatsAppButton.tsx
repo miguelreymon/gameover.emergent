@@ -1,41 +1,46 @@
-
 'use client';
 
-import Link from 'next/link';
-import { siteContent as defaultContent } from '@/lib/content';
-import { useConfig } from '@/context/ConfigContext';
+import { useEffect, useState } from 'react';
 
-const WhatsAppIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="32"
-    height="32"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-  >
-    <path
-      d="M16.75 13.96c-.25-.12-1.47-.72-1.7-.84-.23-.12-.39-.12-.56.12-.17.25-.64.84-.79 1.01-.15.17-.29.18-.54.06-.25-.12-1.06-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.15-.25-.02-.38.1-.51.11-.11.25-.29.37-.43.13-.14.17-.25.25-.42.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.55-.42h-.48c-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.76 2.67 4.25 3.73.59.25 1.05.4 1.41.51.59.18 1.13.15 1.56.09.48-.06 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.12-.22-.18-.47-.3zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
-    />
-  </svg>
-);
+/**
+ * WhatsApp flotante diferido: solo se monta tras `requestIdleCallback`,
+ * no compite con la carga inicial.
+ */
+export default function WhatsAppButton({ phone }: { phone: string }) {
+  const [show, setShow] = useState(false);
 
+  useEffect(() => {
+    const w: any = window;
+    const cb = () => setShow(true);
+    if (typeof w.requestIdleCallback === 'function') {
+      w.requestIdleCallback(cb, { timeout: 2000 });
+    } else {
+      setTimeout(cb, 1500);
+    }
+  }, []);
 
-export default function WhatsAppButton() {
-  const config = useConfig();
-  const siteContent = config || defaultContent;
-  const phoneNumber = siteContent.footer.whatsAppNumber.replace(/\D/g, '');
-  const message = "Hola, estoy en la web y tengo una pregunta sobre la Consola Gameover®";
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+  if (!show) return null;
 
   return (
-    <Link 
-      href={whatsappUrl} 
-      target="_blank" 
+    <a
+      href={`https://wa.me/${phone}`}
+      target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-24 right-6 bg-green-500 hover:bg-green-600 text-white p-3 rounded-full shadow-lg z-50 flex items-center justify-center transition-transform hover:scale-110"
+      className="fixed bottom-6 right-6 z-[9999] bg-[#25D366] text-white p-3 rounded-full shadow-lg hover:scale-110 transition-transform duration-300 flex items-center justify-center group"
       aria-label="Contactar por WhatsApp"
     >
-      <WhatsAppIcon />
-    </Link>
+      <svg
+        viewBox="0 0 24 24"
+        width="32"
+        height="32"
+        fill="currentColor"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 0 5.414 0 12.05c0 2.123.552 4.197 1.602 6.02L0 24l6.137-1.611a11.774 11.774 0 005.911 1.562h.005c6.637 0 12.05-5.414 12.05-12.05 0-3.212-1.25-6.232-3.517-8.498z" />
+      </svg>
+      <span className="absolute right-full mr-3 bg-white text-gray-800 px-3 py-1.5 rounded-lg text-sm font-medium shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap border">
+        ¿Tienes dudas? ¡Escríbenos!
+      </span>
+    </a>
   );
 }

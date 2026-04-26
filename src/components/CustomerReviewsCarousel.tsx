@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Carousel,
   CarouselContent,
@@ -24,71 +24,49 @@ import { useConfig } from '@/context/ConfigContext';
 import { getImage } from '@/lib/images';
 
 /**
- * Vídeo perezoso: solo carga el src cuando el slide entra en el viewport,
- * y solo reproduce cuando es realmente visible. Ahorra ~25 MB en carga inicial.
+ * Vídeo del carrusel:
+ * - Slide ACTIVO: preload="auto" + autoplay
+ * - Resto: preload="metadata" (solo cabeceras, ~KB)
+ * - Pausa cuando sale del viewport para no consumir CPU
  */
-function LazyVideo({ src, className }: { src: string; className?: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
+function CarouselVideo({ src, isActive }: { src: string; isActive: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [shouldLoad, setShouldLoad] = useState(false);
 
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
+    const v = videoRef.current;
+    if (!v) return;
+    if (isActive) {
+      v.play().catch(() => {});
+    } else {
+      v.pause();
+    }
+  }, [isActive]);
 
-    // 1) Cuando el contenedor está cerca del viewport → empezamos a descargar
-    const loadObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setShouldLoad(true);
-            loadObserver.disconnect();
-          }
-        });
+  // Pausa cuando no es visible para no malgastar CPU/batería
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) v.pause();
+        else if (isActive) v.play().catch(() => {});
       },
-      { rootMargin: '200px' }
+      { threshold: 0.4 }
     );
-    loadObserver.observe(el);
-
-    // 2) Solo se reproduce cuando es realmente visible
-    const playObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const v = videoRef.current;
-          if (!v) return;
-          if (entry.isIntersecting) {
-            v.play().catch(() => {});
-          } else {
-            v.pause();
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
-    playObserver.observe(el);
-
-    return () => {
-      loadObserver.disconnect();
-      playObserver.disconnect();
-    };
-  }, []);
+    obs.observe(v);
+    return () => obs.disconnect();
+  }, [isActive]);
 
   return (
-    <div ref={containerRef} className="w-full h-full">
-      {shouldLoad ? (
-        <video
-          ref={videoRef}
-          src={src}
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          className={className}
-        />
-      ) : (
-        <div className={cn(className, 'bg-slate-200 animate-pulse')} />
-      )}
-    </div>
+    <video
+      ref={videoRef}
+      src={src}
+      loop
+      muted
+      playsInline
+      preload={isActive ? 'auto' : 'metadata'}
+      className="w-full h-full object-cover"
+    />
   );
 }
 
@@ -122,7 +100,7 @@ export default function CustomerReviewsCarousel() {
         className="w-full"
       >
         <CarouselContent className="-ml-2">
-          {customerVideos.map((video) => (
+          {customerVideos.map((video, idx) => (
             <CarouselItem key={video.id} className="pl-2 basis-1/3">
               <div className="p-1">
                 <Dialog
@@ -137,10 +115,10 @@ export default function CustomerReviewsCarousel() {
                       onClick={() => setSelectedVideo(video)}
                     >
                       <Card className="overflow-hidden">
-                        <CardContent className="p-0 aspect-[9/16] relative flex items-center justify-center">
-                          <LazyVideo
+                        <CardContent className="p-0 aspect-[9/16] relative flex items-center justify-center bg-slate-200">
+                          <CarouselVideo
                             src={getImage(video.src)}
-                            className="w-full h-full object-cover"
+                            isActive={idx === current}
                           />
                           <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-opacity opacity-0 hover:opacity-100">
                             <PlayCircle className="w-16 h-16 text-white/80" />

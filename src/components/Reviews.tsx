@@ -55,6 +55,7 @@ export default function Reviews() {
             className="rounded-lg object-cover"
             data-ai-hint="customer photo"
             loading="lazy"
+            quality={70}
             referrerPolicy="no-referrer"
           />
         </div>

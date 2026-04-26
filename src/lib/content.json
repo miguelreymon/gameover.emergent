@@ -15,7 +15,7 @@
   ],
   "siteContent": {
     "header": {
-      "logo": "/images/aaa.png",
+      "logo": "/images/aaa.webp",
       "announcementBar": "🤍​ LIQUIDACION DE STOCK SOLO HOY –50 % DTO Y ENVIO GRATIS 🤍"
     },
     "footer": {
@@ -278,7 +278,7 @@
         ],
         "buttonText": "Más sobre la comunidad",
         "buttonLink": "/comunidad",
-        "cartImage": "/images/mario.png"
+        "cartImage": "/images/mario.webp"
       },
       "reviewsSection": {
         "title": "Opinión de Nuestros Clientes",
@@ -702,7 +702,7 @@
       "hero": {
         "title": "Creado por gamers, para gamers.",
         "description": "Somos un grupo de apasionados por los videojuegos que crecimos en la era dorada de los 8 y 16 bits. Gameover nació de nuestra nostalgia y del deseo de preservar la magia de los clásicos para las nuevas generaciones.<br /><br />Nuestra misión es simple: ofrecer la experiencia retro más auténtica y accesible, todo en una sola consola.",
-        "imageSrc": "/images/banner2.png"
+        "imageSrc": "/images/banner2.webp"
       },
       "story": {
         "title": "Nuestra Historia",
@@ -711,7 +711,7 @@
           "Pasamos años investigando, probando y perfeccionando la forma de emular cientos de sistemas en un solo dispositivo que fuera potente, fácil de usar y, sobre todo, fiel a la experiencia original.",
           "Así nació la Consola Gameover®. No es solo un producto, es nuestro homenaje a los pixeles que nos formaron, a las tardes con amigos y a la pura diversión que solo un buen videojuego puede ofrecer."
         ],
-        "imageSrc": "/images/mario.png"
+        "imageSrc": "/images/mario.webp"
       },
       "mission": {
         "title": "Nuestra Misión",

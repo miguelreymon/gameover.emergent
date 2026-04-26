@@ -34,6 +34,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             data-ai-hint={images[selectedImage].hint}
             priority
+            quality={80}
             referrerPolicy="no-referrer"
           />
         </div>
@@ -65,6 +66,8 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
               className="object-cover"
               sizes="20vw"
               data-ai-hint={image.hint}
+              loading="lazy"
+              quality={70}
               referrerPolicy="no-referrer"
             />
           </button>

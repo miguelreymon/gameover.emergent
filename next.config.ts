@@ -4,7 +4,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // eslint config removed (Next 16 ya no lo soporta dentro de next.config)
   experimental: {
     serverActions: {
       allowedOrigins: [
@@ -24,17 +23,42 @@ const nextConfig: NextConfig = {
       ],
     },
   },
-  // Performance: compresión + formatos modernos de imagen
   compress: true,
   images: {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 31536000, // 1 año cache para imágenes optimizadas
+    qualities: [60, 70, 75, 80, 90],
+    deviceSizes: [320, 480, 640, 768, 1024, 1280, 1536, 1920],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: '**',
       },
     ],
+  },
+  async headers() {
+    return [
+      {
+        // Imágenes estáticas en /public/images: cache inmutable durante 1 año
+        source: '/images/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        // Cualquier respuesta del optimizador de imágenes de Next
+        source: '/_next/image(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
   },
 };
 

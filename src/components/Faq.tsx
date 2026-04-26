@@ -15,7 +15,7 @@ export function Faq({ data }: { data?: any }) {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
             <Image
-                src="/images/mario.png"
+                src="/images/mario.webp"
                 alt="Preguntas Frecuentes"
                 width={300}
                 height={290}
