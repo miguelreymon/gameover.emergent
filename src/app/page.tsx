@@ -2,20 +2,11 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import dynamic from 'next/dynamic';
 import { useConfig } from '@/context/ConfigContext';
 import { siteContent as defaultContent } from '@/lib/content';
 import { getImage } from '@/lib/images';
-
-// Lazy: estos bloques están bajo el fold y no son críticos para el LCP
-const Reviews = dynamic(() => import('@/components/Reviews'), {
-  ssr: false,
-  loading: () => <div className="py-12 min-h-[200px]" />,
-});
-const Faq = dynamic(() => import('@/components/Faq').then(m => ({ default: m.Faq })), {
-  ssr: false,
-  loading: () => <div className="py-12 min-h-[200px]" />,
-});
+import Reviews from '@/components/Reviews';
+import { Faq } from '@/components/Faq';
 
 export default function Home() {
   const config = useConfig();
@@ -33,7 +24,6 @@ export default function Home() {
 
   return (
     <>
-      {/* Hero banner: imagen LCP, priority + fetchPriority high */}
       {hero?.enabled !== false && hero?.image && (
         <section className="relative w-full overflow-hidden">
           <div className="relative h-[40vh] min-h-[280px] md:h-[55vh] md:min-h-[420px] w-full">
@@ -65,7 +55,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* Products grid */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <h2 className="text-3xl md:text-4xl font-bold font-headline text-center mb-10">
           Nuestros Productos
@@ -89,7 +78,7 @@ export default function Home() {
                   href={`/producto/${p.slug}`}
                   className="group bg-white rounded-xl overflow-hidden border hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
                   data-testid={`product-card-${p.slug}`}
-                  prefetch={idx < 2 /* prefetch las 2 primeras tarjetas (las más vistas) */}
+                  prefetch={idx < 2}
                 >
                   <div className="relative aspect-square bg-slate-100 overflow-hidden">
                     <Image
@@ -99,7 +88,6 @@ export default function Home() {
                       className="object-cover group-hover:scale-105 transition-transform"
                       referrerPolicy="no-referrer"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      // Solo la 1a tarjeta se carga en alta prioridad (es above the fold en mobile)
                       {...(idx === 0 ? { priority: true } : { loading: 'lazy' as const })}
                     />
                   </div>

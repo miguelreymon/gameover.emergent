@@ -1,22 +1,14 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import dynamic from 'next/dynamic';
 import ProductGallery from '@/components/ProductGallery';
 import ProductDetails from '@/components/ProductDetails';
 import ProductFeatureSections from '@/components/ProductFeatureSections';
+import Reviews from '@/components/Reviews';
+import { Faq } from '@/components/Faq';
 import { getContent } from '@/lib/data';
 import { siteContent as defaultContent } from '@/lib/content';
 import { getImage } from '@/lib/images';
 
-// Lazy: bajo el fold, no bloquean la carga inicial
-const Reviews = dynamic(() => import('@/components/Reviews'), {
-  loading: () => <div className="py-12 min-h-[200px]" />,
-});
-const Faq = dynamic(() => import('@/components/Faq').then(m => ({ default: m.Faq })), {
-  loading: () => <div className="py-12 min-h-[200px]" />,
-});
-
-// ISR + pre-build de TODAS las URLs de producto en build time → carga instantánea
 export const revalidate = 60;
 
 export async function generateStaticParams() {
@@ -64,7 +56,6 @@ export default async function ProductPage({
         </div>
       </div>
 
-      {/* Secciones destacadas específicas de este producto */}
       <ProductFeatureSections
         featureSection1={product.featureSection1}
         featureSection2={product.featureSection2}

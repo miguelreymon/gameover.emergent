@@ -23,11 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import ProductInfoAccordion from './ProductInfoAccordion';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import dynamic from 'next/dynamic';
-const CustomerReviewsCarousel = dynamic(() => import('./CustomerReviewsCarousel'), {
-  ssr: false,
-  loading: () => <div className="py-6 min-h-[200px]" />,
-});
+import CustomerReviewsCarousel from './CustomerReviewsCarousel';
 import { useRouter } from 'next/navigation';
 import { siteContent } from '@/lib/content';
 import { getImage } from '@/lib/images';
