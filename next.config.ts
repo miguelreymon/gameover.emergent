@@ -4,10 +4,12 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  compress: true,
   experimental: {
     serverActions: {
       allowedOrigins: [
         '*.preview.emergentagent.com',
+        '*.preview.emergentcf.cloud',
         '*.cluster-0.preview.emergentcf.cloud',
         '*.cluster-1.preview.emergentcf.cloud',
         '*.cluster-2.preview.emergentcf.cloud',
@@ -18,16 +20,51 @@ const nextConfig: NextConfig = {
         '*.cluster-7.preview.emergentcf.cloud',
         '*.cluster-8.preview.emergentcf.cloud',
         '*.cluster-9.preview.emergentcf.cloud',
-        '*.preview.emergentcf.cloud',
+        '*.cluster-10.preview.emergentcf.cloud',
+        '*.cluster-11.preview.emergentcf.cloud',
+        '*.cluster-12.preview.emergentcf.cloud',
+        '*.cluster-13.preview.emergentcf.cloud',
+        '*.cluster-14.preview.emergentcf.cloud',
+        '*.cluster-15.preview.emergentcf.cloud',
+        '*.cluster-16.preview.emergentcf.cloud',
+        '*.cluster-17.preview.emergentcf.cloud',
+        '*.cluster-18.preview.emergentcf.cloud',
+        '*.cluster-19.preview.emergentcf.cloud',
+        '*.cluster-20.preview.emergentcf.cloud',
         'localhost:3000',
       ],
     },
+    optimizePackageImports: [
+      'lucide-react',
+      'embla-carousel-react',
+      '@radix-ui/react-accordion',
+      '@radix-ui/react-alert-dialog',
+      '@radix-ui/react-avatar',
+      '@radix-ui/react-checkbox',
+      '@radix-ui/react-collapsible',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-label',
+      '@radix-ui/react-menubar',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-progress',
+      '@radix-ui/react-radio-group',
+      '@radix-ui/react-scroll-area',
+      '@radix-ui/react-select',
+      '@radix-ui/react-separator',
+      '@radix-ui/react-slider',
+      '@radix-ui/react-slot',
+      '@radix-ui/react-switch',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-toast',
+      '@radix-ui/react-tooltip',
+      'date-fns',
+      'recharts',
+    ],
   },
-  compress: true,
   images: {
     formats: ['image/avif', 'image/webp'],
-    minimumCacheTTL: 31536000, // 1 año cache para imágenes optimizadas
-    qualities: [60, 70, 75, 80, 90],
+    minimumCacheTTL: 31536000,
     deviceSizes: [320, 480, 640, 768, 1024, 1280, 1536, 1920],
     remotePatterns: [
       {
@@ -39,7 +76,6 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Imágenes estáticas en /public/images: cache inmutable durante 1 año
         source: '/images/:path*',
         headers: [
           {
@@ -49,7 +85,6 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Cualquier respuesta del optimizador de imágenes de Next
         source: '/_next/image(.*)',
         headers: [
           {

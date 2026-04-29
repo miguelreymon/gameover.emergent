@@ -1,17 +1,10 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { logoutAction } from './actions';
 
 export const metadata = {
   title: 'Admin - Gameover',
 };
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('gameover_admin')?.value;
-  const authed = !!process.env.ADMIN_PASSWORD && token === process.env.ADMIN_PASSWORD;
-
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-slate-900 text-white">
@@ -23,23 +16,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link href="/" className="hover:underline" data-testid="admin-to-site">
               Ver sitio →
             </Link>
-            {authed && (
-              <form
-                action={async () => {
-                  'use server';
-                  await logoutAction();
-                  redirect('/admin/login');
-                }}
-              >
-                <button
-                  type="submit"
-                  className="bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded text-sm"
-                  data-testid="admin-logout-btn"
-                >
-                  Salir
-                </button>
-              </form>
-            )}
           </div>
         </div>
       </header>

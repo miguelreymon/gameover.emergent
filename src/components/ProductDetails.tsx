@@ -305,6 +305,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                       src={getImage(option.image)}
                       alt={option.name}
                       fill
+                      sizes="(max-width: 768px) 50vw, 256px"
                       className="object-contain p-4"
                       referrerPolicy="no-referrer"
                     />
@@ -356,7 +357,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             </div>
             <div className="space-y-0">
               <p className="font-bold text-base text-black">Envío</p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500" suppressHydrationWarning>
                 {new Date(Date.now() + 86400000).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }).replace('.', '')}
               </p>
             </div>
@@ -369,7 +370,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             </div>
             <div className="space-y-0">
               <p className="font-bold text-base text-black">Llegada</p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500" suppressHydrationWarning>
                 {new Date(Date.now() + 172800000).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }).replace('.', '')}
               </p>
             </div>

@@ -6,6 +6,7 @@ import Script from 'next/script';
 import { getContent } from '@/lib/data';
 import { siteContent as defaultContent } from '@/lib/content';
 import { AppLayout } from './AppLayout';
+import { FacebookPixel } from '@/components/FacebookPixel';
 import { Metadata } from 'next';
 
 // ISR: páginas estáticas regeneradas cada 60s. Edits en /admin se reflejan
@@ -82,21 +83,9 @@ export default async function RootLayout({
 
         {/* Square SDK movido a /checkout. Antes cargaba en TODAS las páginas y bloqueaba el render. */}
 
-        {/* Facebook Pixel: lazyOnload = se carga DESPUÉS de que la página esté interactiva */}
-        <Script id="facebook-pixel" strategy="lazyOnload">
-          {`
-            !function(f,b,e,v,n,t,s)
-            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-            n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)}(window, document,'script',
-            'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '3966676673555416');
-            fbq('track', 'PageView');
-          `}
-        </Script>
+        {/* Facebook Pixel: se carga SOLO tras la primera interacción del usuario o 5s.
+            Reduce TBT (Total Blocking Time) en móvil de forma drástica. */}
+        <FacebookPixel pixelId="3966676673555416" />
         <noscript>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img height="1" width="1" style={{display: 'none'}}
