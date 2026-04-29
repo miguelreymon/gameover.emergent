@@ -46,3 +46,8 @@ credentials.json
 *.pem
 *.key
 .credentials
+
+# Emergent platform folders
+memory/
+test_reports/
+test_result.md
