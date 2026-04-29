@@ -11,7 +11,7 @@ const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-09-30.clover' })
   : null;
 
-// Schema definitions using Zod directly
+// Schemas
 const CustomerSchema = z.object({
   email: z.string(),
   phone: z.string().optional(),
@@ -33,25 +33,14 @@ const CartItemSchema = z.object({
   isUpsell: z.boolean().optional(),
 });
 
-const ProcessOrderInputSchema = z.object({
-  paymentMethod: z.enum(['card', 'cod', 'bizum']),
-  currency: z.string().default('EUR'),
-  totalAmount: z.number(),
-  customer: CustomerSchema,
-  cartItems: z.array(CartItemSchema),
-});
+export type Customer = z.infer<typeof CustomerSchema>;
+export type CartItem = z.infer<typeof CartItemSchema>;
 
-export type ProcessOrderInput = z.infer<typeof ProcessOrderInputSchema>;
-
-const ProcessOrderOutputSchema = z.object({
-  success: z.boolean(),
-  orderId: z.string().nullable(),
-  // For card flow we return a URL to redirect the user to Stripe Checkout
-  redirectUrl: z.string().nullable().optional(),
-  error: z.string().nullable(),
-});
-
-export type ProcessOrderOutput = z.infer<typeof ProcessOrderOutputSchema>;
+type OrderPayload = {
+  customer: Customer;
+  cartItems: CartItem[];
+  total: number;
+};
 
 const SubmitReviewInputSchema = z.object({
   name: z.string(),
@@ -70,217 +59,296 @@ const SubmitReviewOutputSchema = z.object({
 
 export type SubmitReviewOutput = z.infer<typeof SubmitReviewOutputSchema>;
 
-// Type describing the order data passed between client and server actions
-type OrderPayload = {
-  customer: z.infer<typeof CustomerSchema>;
-  cartItems: z.infer<typeof CartItemSchema>[];
-  total: number;
-};
+// =============================================================================
+// PAYMENT INTENT (embedded checkout)
+// =============================================================================
+// Creates a Stripe PaymentIntent so the embedded <PaymentElement> can render
+// card / Apple Pay / Google Pay / Bizum based on the customer's device.
 
-type PaymentMethodInput = 'card' | 'cod' | 'bizum';
-
-export async function processOrderAction({
-  payment,
-  order,
-  origin,
+export async function createPaymentIntentAction({
+  customer,
+  cartItems,
+  total,
 }: {
-  payment: { paymentMethod: PaymentMethodInput; currency?: string };
-  order: OrderPayload;
-  origin?: string;
-}): Promise<ProcessOrderOutput> {
+  customer: Customer;
+  cartItems: CartItem[];
+  total: number;
+}): Promise<{
+  success: boolean;
+  clientSecret: string | null;
+  paymentIntentId: string | null;
+  orderId: string | null;
+  error: string | null;
+}> {
   try {
-    const displayOrderId = Math.floor(1000 + Math.random() * 9000).toString();
-    const isFreeOrder = order.total <= 0;
-
-    // === PAYMENT WITH CARD via Stripe Checkout ===
-    if (payment.paymentMethod === 'card' && !isFreeOrder) {
-      if (!stripe) {
-        return {
-          success: false,
-          orderId: null,
-          error: 'Pagos con tarjeta no configurados. Contacta con el administrador.',
-        };
-      }
-
-      const baseUrl =
-        origin ||
-        process.env.NEXT_PUBLIC_BASE_URL ||
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-
-      // Build line items from the cart (price-by-price, never trust frontend totals
-      // beyond the sum of these items). Upsells with price=0 are sent as 0-cost items.
-      const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = order.cartItems.map((item) => ({
-        quantity: item.quantity,
-        price_data: {
-          currency: (payment.currency || 'EUR').toLowerCase(),
-          unit_amount: Math.max(0, Math.round(item.price * 100)),
-          product_data: {
-            name: item.color ? `${item.name} (${item.color})` : item.name,
-          },
-        },
-      }));
-
-      // If a coupon/discount lowered the total below the sum of items, apply it
-      // as a Stripe coupon (one-time amount_off).
-      const itemsTotalCents = order.cartItems.reduce(
-        (sum, i) => sum + Math.round(i.price * 100) * i.quantity,
-        0
-      );
-      const targetTotalCents = Math.max(0, Math.round(order.total * 100));
-      let discounts: Stripe.Checkout.SessionCreateParams.Discount[] | undefined;
-      if (targetTotalCents < itemsTotalCents) {
-        const amountOff = itemsTotalCents - targetTotalCents;
-        const coupon = await stripe.coupons.create({
-          amount_off: amountOff,
-          currency: (payment.currency || 'EUR').toLowerCase(),
-          duration: 'once',
-          name: 'Descuento aplicado',
-        });
-        discounts = [{ coupon: coupon.id }];
-      }
-
-      const session = await stripe.checkout.sessions.create({
-        mode: 'payment',
-        payment_method_types: ['card'],
-        line_items,
-        discounts,
-        customer_email: order.customer.email,
-        success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${baseUrl}/checkout/cancel`,
-        metadata: {
-          orderId: displayOrderId,
-          customerName: order.customer.firstName,
-          customerEmail: order.customer.email,
-          customerPhone: order.customer.phone || '',
-          shippingAddress: order.customer.address,
-          shippingCity: order.customer.city,
-          shippingPostalCode: order.customer.postalCode,
-          shippingCountry: order.customer.country,
-          totalAmount: order.total.toFixed(2),
-          itemsSummary: order.cartItems
-            .map((i) => `${i.quantity}x ${i.name}${i.color ? ` (${i.color})` : ''}`)
-            .join(' | ')
-            .slice(0, 490),
-        },
-      });
-
-      if (!session.url) {
-        return {
-          success: false,
-          orderId: null,
-          error: 'No se pudo iniciar la pasarela de pago.',
-        };
-      }
-
+    if (!stripe) {
       return {
-        success: true,
-        orderId: displayOrderId,
-        redirectUrl: session.url,
-        error: null,
+        success: false,
+        clientSecret: null,
+        paymentIntentId: null,
+        orderId: null,
+        error: 'Pagos no configurados. Falta STRIPE_SECRET_KEY.',
+      };
+    }
+    if (total <= 0) {
+      return {
+        success: false,
+        clientSecret: null,
+        paymentIntentId: null,
+        orderId: null,
+        error: 'El importe debe ser mayor que 0.',
       };
     }
 
-    // === BIZUM, COD or FREE ORDER (no card processing) ===
-    console.log('--- PROCESANDO PEDIDO (sin tarjeta) ---');
-    console.log('ID Pedido:', displayOrderId, 'Método:', payment.paymentMethod);
+    const orderId = Math.floor(1000 + Math.random() * 9000).toString();
+    const amountCents = Math.round(total * 100);
 
-    await Promise.all([
-      sendOrderNotification({ ...order, orderId: displayOrderId, paymentMethod: payment.paymentMethod }),
-      sendCustomerEmail({ ...order, orderId: displayOrderId, paymentMethod: payment.paymentMethod }),
-    ]);
+    const itemsSummary = cartItems
+      .map((i) => `${i.quantity}x ${i.name}${i.color ? ` (${i.color})` : ''}`)
+      .join(' | ')
+      .slice(0, 490);
+
+    const intent = await stripe.paymentIntents.create({
+      amount: amountCents,
+      currency: 'eur',
+      automatic_payment_methods: { enabled: true },
+      receipt_email: customer.email,
+      description: `Pedido Gameover #${orderId}`,
+      statement_descriptor_suffix: 'GAMEOVER',
+      shipping: {
+        name: customer.firstName,
+        phone: customer.phone || undefined,
+        address: {
+          line1: customer.address,
+          line2: customer.apartment || undefined,
+          city: customer.city,
+          postal_code: customer.postalCode,
+          country: 'ES',
+        },
+      },
+      metadata: {
+        orderId,
+        customerName: customer.firstName,
+        customerEmail: customer.email,
+        customerPhone: customer.phone || '',
+        shippingAddress: customer.address,
+        shippingApartment: customer.apartment || '',
+        shippingCity: customer.city,
+        shippingPostalCode: customer.postalCode,
+        shippingCountry: customer.country,
+        totalAmount: total.toFixed(2),
+        itemsSummary,
+        cartItemsJson: JSON.stringify(
+          cartItems.map((i) => ({ n: i.name, c: i.color || '', p: i.price, q: i.quantity }))
+        ).slice(0, 4500),
+      },
+    });
 
     return {
       success: true,
-      orderId: displayOrderId,
+      clientSecret: intent.client_secret,
+      paymentIntentId: intent.id,
+      orderId,
       error: null,
     };
   } catch (error) {
-    console.error('Error processing order action:', error);
+    console.error('Error creating PaymentIntent:', error);
     return {
       success: false,
+      clientSecret: null,
+      paymentIntentId: null,
       orderId: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred',
+      error: error instanceof Error ? error.message : 'No se pudo iniciar el pago.',
     };
   }
 }
 
-// Verifies a Stripe checkout session after the user comes back from Stripe.
-// Sends notification emails the first time the session is verified as paid.
-export async function verifyStripeSession(sessionId: string): Promise<{
+// Update an existing PaymentIntent's amount (when the cart total changes:
+// coupons, quantity changes, etc.). Returns a fresh client_secret if needed.
+export async function updatePaymentIntentAmountAction({
+  paymentIntentId,
+  total,
+}: {
+  paymentIntentId: string;
+  total: number;
+}): Promise<{ success: boolean; error: string | null }> {
+  try {
+    if (!stripe) return { success: false, error: 'Stripe no configurado.' };
+    if (total <= 0) return { success: false, error: 'Importe inválido.' };
+    await stripe.paymentIntents.update(paymentIntentId, {
+      amount: Math.round(total * 100),
+    });
+    return { success: true, error: null };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'No se pudo actualizar el importe.',
+    };
+  }
+}
+
+// Verifies a PaymentIntent after the customer is redirected back to /checkout/success.
+// Sends notification emails the first time the intent is verified as succeeded.
+export async function verifyStripePaymentAction(paymentIntentId: string): Promise<{
   success: boolean;
   paid: boolean;
   orderId: string | null;
   total: number;
   customerEmail: string;
+  paymentMethodType: string;
   error: string | null;
 }> {
   try {
     if (!stripe) {
-      return { success: false, paid: false, orderId: null, total: 0, customerEmail: '', error: 'Stripe no configurado.' };
+      return {
+        success: false,
+        paid: false,
+        orderId: null,
+        total: 0,
+        customerEmail: '',
+        paymentMethodType: '',
+        error: 'Stripe no configurado.',
+      };
     }
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['line_items', 'customer_details'],
+    const intent = await stripe.paymentIntents.retrieve(paymentIntentId, {
+      expand: ['payment_method'],
     });
 
-    const paid = session.payment_status === 'paid';
-    const orderId = (session.metadata?.orderId as string) || null;
-    const customerEmail =
-      (session.metadata?.customerEmail as string) ||
-      session.customer_details?.email ||
-      '';
-    const total = session.amount_total ? session.amount_total / 100 : 0;
+    const paid = intent.status === 'succeeded';
+    const orderId = (intent.metadata?.orderId as string) || null;
+    const customerEmail = (intent.metadata?.customerEmail as string) || intent.receipt_email || '';
+    const total = intent.amount ? intent.amount / 100 : 0;
 
-    if (paid && session.metadata?.notified !== 'true' && orderId) {
-      // Reconstruct an order payload from metadata + line items for emails.
-      const lineItems = (session.line_items?.data || []).map((li) => ({
-        id: li.id,
-        name: li.description || 'Producto',
-        image: '',
-        price: (li.price?.unit_amount || 0) / 100,
-        quantity: li.quantity || 1,
-      }));
+    let paymentMethodType = '';
+    const pm = intent.payment_method;
+    if (pm && typeof pm !== 'string') {
+      paymentMethodType = pm.type;
+    } else if (intent.payment_method_types?.length) {
+      paymentMethodType = intent.payment_method_types[0];
+    }
+
+    if (paid && intent.metadata?.notified !== 'true' && orderId) {
+      let cartItems: CartItem[] = [];
+      try {
+        const parsed: Array<{ n: string; c: string; p: number; q: number }> = JSON.parse(
+          (intent.metadata?.cartItemsJson as string) || '[]'
+        );
+        cartItems = parsed.map((it, idx) => ({
+          id: `m-${idx}`,
+          name: it.n,
+          image: '',
+          price: it.p,
+          quantity: it.q,
+          color: it.c || undefined,
+        }));
+      } catch {
+        // If metadata can't be parsed, send email with a single line "Pedido"
+        cartItems = [{ id: 'order', name: 'Pedido', image: '', price: total, quantity: 1 }];
+      }
 
       const orderPayload: OrderPayload & { orderId: string; paymentMethod: string } = {
         customer: {
           email: customerEmail,
-          firstName: (session.metadata?.customerName as string) || '',
-          phone: (session.metadata?.customerPhone as string) || undefined,
-          address: (session.metadata?.shippingAddress as string) || '',
-          city: (session.metadata?.shippingCity as string) || '',
-          postalCode: (session.metadata?.shippingPostalCode as string) || '',
-          country: (session.metadata?.shippingCountry as string) || '',
+          firstName: (intent.metadata?.customerName as string) || '',
+          phone: (intent.metadata?.customerPhone as string) || undefined,
+          address: (intent.metadata?.shippingAddress as string) || '',
+          apartment: (intent.metadata?.shippingApartment as string) || undefined,
+          city: (intent.metadata?.shippingCity as string) || '',
+          postalCode: (intent.metadata?.shippingPostalCode as string) || '',
+          country: (intent.metadata?.shippingCountry as string) || '',
         },
-        cartItems: lineItems,
+        cartItems,
         total,
         orderId,
-        paymentMethod: 'card',
+        paymentMethod: paymentMethodType,
       };
 
-      // Fire-and-forget emails, but await so the page can show "email sent" state.
       await Promise.all([sendOrderNotification(orderPayload), sendCustomerEmail(orderPayload)]);
 
-      // Mark session as notified so refreshing the success page doesn't re-send.
       try {
-        await stripe.checkout.sessions.update(sessionId, {
-          metadata: { ...(session.metadata || {}), notified: 'true' },
+        await stripe.paymentIntents.update(paymentIntentId, {
+          metadata: { ...(intent.metadata || {}), notified: 'true' },
         });
       } catch (e) {
-        console.warn('Could not update Stripe session metadata:', e);
+        console.warn('Could not update PaymentIntent metadata:', e);
       }
     }
 
-    return { success: true, paid, orderId, total, customerEmail, error: null };
+    return {
+      success: true,
+      paid,
+      orderId,
+      total,
+      customerEmail,
+      paymentMethodType,
+      error: null,
+    };
   } catch (error) {
-    console.error('Error verifying Stripe session:', error);
+    console.error('Error verifying PaymentIntent:', error);
     return {
       success: false,
       paid: false,
       orderId: null,
       total: 0,
       customerEmail: '',
+      paymentMethodType: '',
       error: error instanceof Error ? error.message : 'No se pudo verificar el pago.',
     };
+  }
+}
+
+// =============================================================================
+// FREE ORDER (coupon makes total = 0). Just send confirmation emails.
+// =============================================================================
+export async function processFreeOrderAction({
+  customer,
+  cartItems,
+  total,
+}: {
+  customer: Customer;
+  cartItems: CartItem[];
+  total: number;
+}): Promise<{ success: boolean; orderId: string | null; error: string | null }> {
+  try {
+    const orderId = Math.floor(1000 + Math.random() * 9000).toString();
+    await Promise.all([
+      sendOrderNotification({ customer, cartItems, total, orderId, paymentMethod: 'free' }),
+      sendCustomerEmail({ customer, cartItems, total, orderId, paymentMethod: 'free' }),
+    ]);
+    return { success: true, orderId, error: null };
+  } catch (error) {
+    return {
+      success: false,
+      orderId: null,
+      error: error instanceof Error ? error.message : 'No se pudo procesar el pedido gratuito.',
+    };
+  }
+}
+
+// =============================================================================
+// EMAIL HELPERS (Resend)
+// =============================================================================
+
+function paymentMethodLabel(method?: string): string {
+  switch (method) {
+    case 'card':
+      return 'Tarjeta';
+    case 'bizum':
+      return 'Bizum';
+    case 'apple_pay':
+      return 'Apple Pay';
+    case 'google_pay':
+      return 'Google Pay';
+    case 'link':
+      return 'Stripe Link';
+    case 'free':
+      return 'Cupón (gratis)';
+    case '':
+    case undefined:
+      return 'Online';
+    default:
+      return method.charAt(0).toUpperCase() + method.slice(1);
   }
 }
 
@@ -288,6 +356,10 @@ async function sendCustomerEmail(input: OrderPayload & { orderId: string; paymen
   if (!resend) {
     console.log('--- SIMULANDO ENVÍO DE EMAIL (RESEND_API_KEY NO CONFIGURADA) ---');
     console.log('Destinatario:', input.customer.email);
+    return;
+  }
+  if (!input.customer.email) {
+    console.warn('No customer email available, skipping send.');
     return;
   }
 
@@ -304,24 +376,6 @@ async function sendCustomerEmail(input: OrderPayload & { orderId: string; paymen
       )
       .join('');
 
-    const bizumInstructions =
-      input.paymentMethod === 'bizum'
-        ? `
-      <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 20px; border-radius: 10px; margin: 20px 0;">
-        <h3 style="color: #1e40af; margin-top: 0;">Instrucciones de Pago Bizum</h3>
-        <p>Has seleccionado el pago vía Bizum. Para que podamos procesar tu pedido, por favor realiza el pago de <strong>${input.total.toFixed(0)}€</strong> al siguiente número:</p>
-        <div style="text-align: center; font-size: 24px; font-weight: bold; padding: 10px; background: white; border-radius: 5px; margin: 10px 0; border: 1px dashed #3b82f6;">
-          680414307
-        </div>
-        <p style="font-size: 14px; margin-bottom: 0;"><strong>Concepto:</strong> #${input.orderId}</p>
-        <p style="font-size: 12px; color: #6b7280; margin-top: 5px;">* Es muy importante incluir el número de pedido en el concepto.</p>
-      </div>
-    `
-        : '';
-
-    const paymentMethodText =
-      input.paymentMethod === 'bizum' ? 'Bizum' : input.paymentMethod === 'cod' ? 'Contrareembolso' : 'Tarjeta';
-
     const { data, error } = await resend.emails.send({
       from: 'Gameover <onboarding@resend.dev>',
       to: [input.customer.email],
@@ -334,11 +388,9 @@ async function sendCustomerEmail(input: OrderPayload & { orderId: string; paymen
 
           <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
             <p style="margin: 0;"><strong>Número de Pedido:</strong> #${input.orderId}</p>
-            <p style="margin: 5px 0 0 0;"><strong>Método de Pago:</strong> ${paymentMethodText}</p>
+            <p style="margin: 5px 0 0 0;"><strong>Método de Pago:</strong> ${paymentMethodLabel(input.paymentMethod)}</p>
             <p style="margin: 5px 0 0 0;"><strong>Total:</strong> ${input.total.toFixed(0)}€</p>
           </div>
-
-          ${bizumInstructions}
 
           <h3>Resumen del Pedido</h3>
           <table style="width: 100%; border-collapse: collapse;">
@@ -390,9 +442,6 @@ async function sendOrderNotification(input: OrderPayload & { orderId: string; pa
   }
 
   try {
-    const paymentMethodName =
-      input.paymentMethod === 'bizum' ? 'Bizum' : input.paymentMethod === 'cod' ? 'Contrareembolso' : 'Tarjeta';
-
     const itemsHtml = input.cartItems
       .map(
         (item) => `
@@ -409,7 +458,7 @@ async function sendOrderNotification(input: OrderPayload & { orderId: string; pa
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
           <h2 style="color: #2563eb;">Nuevo Pedido Recibido</h2>
           <p><strong>Número de Pedido:</strong> #${input.orderId}</p>
-          <p><strong>Método de Pago:</strong> ${paymentMethodName}</p>
+          <p><strong>Método de Pago:</strong> ${paymentMethodLabel(input.paymentMethod)}</p>
           <p><strong>Total:</strong> ${input.total.toFixed(0)}€</p>
 
           <hr>
@@ -449,13 +498,11 @@ async function sendOrderNotification(input: OrderPayload & { orderId: string; pa
 export async function submitReviewAction(input: SubmitReviewInput): Promise<SubmitReviewOutput> {
   try {
     const isVerified = input.orderId.length > 0;
-
     console.log('Review submitted:', {
       ...input,
       isVerified,
       createdAt: new Date().toISOString(),
     });
-
     return { success: true, isVerified };
   } catch (error) {
     console.error('Error submitting review:', error);

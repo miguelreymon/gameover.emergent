@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import StripePaymentForm from '@/components/checkout/StripePaymentForm';
 import OrderSummary from '@/components/checkout/OrderSummary';
 import { useCart } from '@/context/CartContext';
@@ -10,6 +10,7 @@ import { siteContent as defaultContent } from '@/lib/content';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
+// PaymentMethod kept for backward compatibility with other components.
 export type PaymentMethod = 'card' | 'cod' | 'bizum';
 
 export default function CheckoutPage() {
@@ -19,32 +20,26 @@ export default function CheckoutPage() {
   const { toast } = useToast();
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
-  const [isDiscountApplied, setIsDiscountApplied] = useState(false);
   const [isLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
-
-  useEffect(() => {
-    if (isDiscountApplied) {
-      setPaymentMethod('card');
-    }
-  }, [isDiscountApplied]);
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shippingFee = 0; // COD hidden, shipping is free or handled elsewhere
-  const baseTotal = subtotal + shippingFee - discount;
-  const bizumDiscount = paymentMethod === 'bizum' ? baseTotal * 0.1 : 0;
-  const total = baseTotal - bizumDiscount;
+  const shippingFee = 0;
+  const total = Math.max(0, subtotal + shippingFee - discount);
 
   const handleApplyCoupon = () => {
     const currentTotal = subtotal + shippingFee;
     const code = couponCode.toLowerCase().trim();
 
-    // Read coupons from siteContent (editable in /admin)
     const contentCoupons = Array.isArray((siteContent as Record<string, unknown>)?.coupons)
-      ? ((siteContent as Record<string, unknown>).coupons as Array<{ code?: string; type: string; value: number; title?: string; description?: string }>)
+      ? ((siteContent as Record<string, unknown>).coupons as Array<{
+          code?: string;
+          type: string;
+          value: number;
+          title?: string;
+          description?: string;
+        }>)
       : [];
 
-    // Legacy hardcoded fallbacks (kept so nothing breaks if coupons not configured)
     const legacy: Record<string, { type: string; value: number; title: string; description: string }> = {
       mike: { type: 'finalPrice', value: 1, title: '¡Cupón de Leyenda aplicado!', description: 'Has conseguido la consola por solo 1€.' },
       mike2: { type: 'free', value: 0, title: '¡Cupón de Dios aplicado!', description: '¡Mamma Mia! Tu pedido es totalmente gratis.' },
@@ -56,7 +51,6 @@ export default function CheckoutPage() {
 
     if (!coupon) {
       setDiscount(0);
-      setIsDiscountApplied(false);
       toast({
         variant: 'destructive',
         title: 'Cupón no válido',
@@ -75,7 +69,6 @@ export default function CheckoutPage() {
     }
 
     setDiscount(newDiscount);
-    setIsDiscountApplied(true);
     toast({
       title: coupon.title || '¡Cupón aplicado!',
       description: coupon.description || '',
@@ -98,7 +91,6 @@ export default function CheckoutPage() {
             <h2 className="text-2xl font-bold mb-6">Resumen del Pedido</h2>
             <OrderSummary
               discount={discount}
-              bizumDiscount={bizumDiscount}
               shippingFee={shippingFee}
               couponCode={couponCode}
               setCouponCode={setCouponCode}
@@ -107,12 +99,7 @@ export default function CheckoutPage() {
           </div>
           <div className="lg:order-2">
             <h1 className="text-3xl font-bold mb-6">Información y Pago</h1>
-            <StripePaymentForm
-              totalAmount={total}
-              paymentMethod={paymentMethod}
-              setPaymentMethod={setPaymentMethod}
-              isDiscountApplied={isDiscountApplied}
-            />
+            <StripePaymentForm totalAmount={total} />
           </div>
         </div>
       </div>

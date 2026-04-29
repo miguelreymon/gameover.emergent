@@ -7,30 +7,49 @@ import { useCart } from '@/context/CartContext';
 import Link from 'next/link';
 import { CheckCircle, Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { verifyStripeSession } from '@/app/actions';
+import { verifyStripePaymentAction } from '@/app/actions';
+
+function methodLabel(t: string): string {
+  switch (t) {
+    case 'card':
+      return 'Tarjeta';
+    case 'bizum':
+      return 'Bizum';
+    case 'apple_pay':
+      return 'Apple Pay';
+    case 'google_pay':
+      return 'Google Pay';
+    case 'link':
+      return 'Stripe Link';
+    default:
+      return t ? t.charAt(0).toUpperCase() + t.slice(1) : '';
+  }
+}
 
 function SuccessContent() {
   const { clearCart } = useCart();
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get('session_id');
+  const paymentIntent = searchParams.get('payment_intent');
+  const redirectStatus = searchParams.get('redirect_status');
 
   const [status, setStatus] = useState<'loading' | 'paid' | 'unpaid' | 'error' | 'no-session'>(
-    sessionId ? 'loading' : 'no-session'
+    paymentIntent ? 'loading' : 'no-session'
   );
   const [orderId, setOrderId] = useState<string | null>(null);
   const [total, setTotal] = useState<number>(0);
+  const [paymentMethod, setPaymentMethod] = useState<string>('');
 
   useEffect(() => {
     clearCart();
   }, [clearCart]);
 
   useEffect(() => {
-    if (!sessionId) return;
+    if (!paymentIntent) return;
 
     let cancelled = false;
     (async () => {
       try {
-        const res = await verifyStripeSession(sessionId);
+        const res = await verifyStripePaymentAction(paymentIntent);
         if (cancelled) return;
         if (!res.success) {
           setStatus('error');
@@ -38,6 +57,7 @@ function SuccessContent() {
         }
         setOrderId(res.orderId);
         setTotal(res.total);
+        setPaymentMethod(res.paymentMethodType);
         setStatus(res.paid ? 'paid' : 'unpaid');
       } catch {
         if (!cancelled) setStatus('error');
@@ -47,7 +67,7 @@ function SuccessContent() {
     return () => {
       cancelled = true;
     };
-  }, [sessionId]);
+  }, [paymentIntent]);
 
   if (status === 'loading') {
     return (
@@ -59,7 +79,7 @@ function SuccessContent() {
     );
   }
 
-  if (status === 'error' || status === 'unpaid') {
+  if (status === 'error' || (status === 'unpaid' && redirectStatus !== 'succeeded')) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center">
         <AlertTriangle className="w-20 h-20 text-amber-500 mb-6" />
@@ -88,6 +108,7 @@ function SuccessContent() {
         <p className="text-lg mb-2">
           Pedido <strong>#{orderId}</strong>
           {total > 0 ? ` · ${total.toFixed(0)}€` : ''}
+          {paymentMethod ? ` · ${methodLabel(paymentMethod)}` : ''}
         </p>
       )}
       <p className="text-xl text-muted-foreground mb-8 max-w-md">

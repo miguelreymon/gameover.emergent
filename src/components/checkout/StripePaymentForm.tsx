@@ -1,7 +1,14 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { loadStripe, type Stripe as StripeJs } from '@stripe/stripe-js';
+import {
+  Elements,
+  PaymentElement,
+  useStripe,
+  useElements,
+} from '@stripe/react-stripe-js';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -15,21 +22,21 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { processOrderAction } from '@/app/actions';
-import { Loader2, Info, CreditCard, Smartphone } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import {
+  createPaymentIntentAction,
+  updatePaymentIntentAmountAction,
+  processFreeOrderAction,
+} from '@/app/actions';
+import { Loader2, Info, ShieldCheck } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import type { PaymentMethod } from '@/app/checkout/page';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Correo electrónico inválido.' }),
@@ -42,27 +49,39 @@ const formSchema = z.object({
   country: z.string().min(1, 'El país es obligatorio.'),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 interface StripePaymentFormProps {
   totalAmount: number;
-  paymentMethod: PaymentMethod;
-  setPaymentMethod: (method: PaymentMethod) => void;
-  isDiscountApplied: boolean;
 }
 
-export default function StripePaymentForm({
-  totalAmount,
-  paymentMethod,
-  setPaymentMethod,
-}: StripePaymentFormProps) {
-  const { cartItems, clearCartAndOrder } = useCart();
-  const { toast } = useToast();
-  const router = useRouter();
+// Lazily create the Stripe instance only when the publishable key is available.
+let stripePromise: Promise<StripeJs | null> | null = null;
+function getStripe() {
+  if (stripePromise) return stripePromise;
+  const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  if (!key) {
+    stripePromise = Promise.resolve(null);
+  } else {
+    stripePromise = loadStripe(key);
+  }
+  return stripePromise;
+}
 
-  const [isProcessing, setIsProcessing] = useState(false);
+export default function StripePaymentForm({ totalAmount }: StripePaymentFormProps) {
+  const { cartItems } = useCart();
+  const { toast } = useToast();
+
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [creatingIntent, setCreatingIntent] = useState(false);
+  const [intentError, setIntentError] = useState<string | null>(null);
 
   const isFreeOrder = totalAmount <= 0;
+  const stripeInstance = useMemo(() => getStripe(), []);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
@@ -76,76 +95,131 @@ export default function StripePaymentForm({
     },
   });
 
-  async function handlePayment(values: z.infer<typeof formSchema>) {
-    setIsProcessing(true);
+  const { watch } = form;
+  const watchedEmail = watch('email');
+  const watchedFirstName = watch('firstName');
+  const watchedAddress = watch('address');
+  const watchedCity = watch('city');
+  const watchedPostalCode = watch('postalCode');
 
-    const orderPayload = {
-      customer: {
-        ...values,
-        phone: values.phone || undefined,
-      },
-      cartItems: cartItems,
+  // Detect if customer info is filled enough to create a PaymentIntent
+  const customerReady =
+    !!watchedEmail &&
+    /^\S+@\S+\.\S+$/.test(watchedEmail) &&
+    !!watchedFirstName &&
+    !!watchedAddress &&
+    !!watchedCity &&
+    !!watchedPostalCode;
+
+  // 1) Create the PaymentIntent the first time customer info is valid
+  useEffect(() => {
+    if (isFreeOrder) return;
+    if (!customerReady) return;
+    if (clientSecret) return;
+    if (creatingIntent) return;
+    if (cartItems.length === 0) return;
+
+    setCreatingIntent(true);
+    setIntentError(null);
+
+    createPaymentIntentAction({
+      customer: form.getValues(),
+      cartItems,
       total: totalAmount,
-    };
+    })
+      .then((res) => {
+        if (!res.success || !res.clientSecret) {
+          setIntentError(res.error || 'No se pudo iniciar el pago.');
+          return;
+        }
+        setClientSecret(res.clientSecret);
+        setPaymentIntentId(res.paymentIntentId);
+        setOrderId(res.orderId);
+      })
+      .catch((e) => setIntentError(e instanceof Error ? e.message : 'Error iniciando pago.'))
+      .finally(() => setCreatingIntent(false));
+  }, [customerReady, clientSecret, creatingIntent, cartItems, totalAmount, isFreeOrder, form]);
 
-    try {
-      const result = await processOrderAction({
-        payment: {
-          paymentMethod: isFreeOrder ? 'bizum' : paymentMethod,
-          currency: 'EUR',
-        },
-        order: orderPayload,
-        origin: typeof window !== 'undefined' ? window.location.origin : undefined,
-      });
+  // 2) If totalAmount changes (coupon, qty), update the PaymentIntent amount
+  const lastSyncedTotal = useRef<number | null>(null);
+  useEffect(() => {
+    if (!paymentIntentId) return;
+    if (isFreeOrder) return;
+    if (lastSyncedTotal.current === totalAmount) return;
+    lastSyncedTotal.current = totalAmount;
+    updatePaymentIntentAmountAction({ paymentIntentId, total: totalAmount }).catch((e) =>
+      console.warn('Update PI amount failed:', e)
+    );
+  }, [paymentIntentId, totalAmount, isFreeOrder]);
 
-      if (!result.success) {
-        throw new Error(result.error || 'No se pudo procesar el pedido.');
-      }
-
-      // Card payment via Stripe Checkout: redirect to hosted page
-      if (result.redirectUrl && paymentMethod === 'card' && !isFreeOrder) {
-        // Save minimal order details so /thank-you can pick them up if needed.
-        const orderDetails = {
-          customer: orderPayload.customer,
-          orderId: result.orderId || '',
-          paymentMethod: 'card' as const,
-          total: totalAmount,
-        };
-        clearCartAndOrder(orderDetails);
-        window.location.href = result.redirectUrl;
-        return;
-      }
-
-      // Bizum / Free order: continue with the existing thank-you flow
-      if (result.orderId) {
-        const orderDetails = {
-          customer: orderPayload.customer,
-          orderId: result.orderId,
-          paymentMethod: paymentMethod,
-          total: totalAmount,
-        };
-        clearCartAndOrder(orderDetails);
-        toast({
-          title: '¡Pedido realizado!',
-          description: 'Gracias por tu compra. Te estamos redirigiendo...',
-        });
-        router.push('/thank-you');
-      }
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Error en el pedido';
-      toast({
-        variant: 'destructive',
-        title: 'Error en el Pedido',
-        description: message,
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+  // === FREE ORDER (coupon mike2) ===
+  if (isFreeOrder) {
+    return (
+      <FreeOrderForm form={form} cartItems={cartItems} totalAmount={totalAmount} />
+    );
   }
 
   return (
+    <div className="space-y-8">
+      <CustomerInfoFields form={form} />
+
+      <div className="space-y-3">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          Método de Pago
+          <ShieldCheck className="w-5 h-5 text-green-600" />
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Pago seguro procesado por Stripe. Aceptamos tarjeta, Apple&nbsp;Pay, Google&nbsp;Pay y
+          Bizum. Tus datos están encriptados.
+        </p>
+
+        {!customerReady && (
+          <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+            Rellena tus datos de contacto y envío para continuar con el pago.
+          </div>
+        )}
+
+        {customerReady && creatingIntent && (
+          <div className="rounded-md border p-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin" /> Cargando pasarela de pago…
+          </div>
+        )}
+
+        {intentError && (
+          <div className="rounded-md border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
+            {intentError}
+          </div>
+        )}
+
+        {clientSecret && customerReady && (
+          <Elements
+            stripe={stripeInstance}
+            options={{
+              clientSecret,
+              appearance: { theme: 'stripe', labels: 'floating' },
+              locale: 'es',
+            }}
+          >
+            <CheckoutInner
+              form={form}
+              orderId={orderId}
+              totalAmount={totalAmount}
+              toast={toast}
+            />
+          </Elements>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// Customer Info Fields (shared)
+// =============================================================================
+function CustomerInfoFields({ form }: { form: ReturnType<typeof useForm<FormValues>> }) {
+  return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handlePayment)} className="space-y-8" data-testid="checkout-form">
+      <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
         <div className="space-y-4">
           <h2 className="text-xl font-bold">Información de Contacto</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -175,7 +249,10 @@ export default function StripePaymentForm({
                           <Info className="w-4 h-4 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Aconsejable para que el repartidor pueda contactarte si hay algún problema.</p>
+                          <p>
+                            Necesario para Bizum y aconsejable para que el repartidor pueda
+                            contactarte.
+                          </p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -192,21 +269,19 @@ export default function StripePaymentForm({
 
         <div className="space-y-4">
           <h2 className="text-xl font-bold">Dirección de Envío</h2>
-          <div className="grid grid-cols-1 gap-4">
-            <FormField
-              control={form.control}
-              name="firstName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nombre y Apellidos</FormLabel>
-                  <FormControl>
-                    <Input data-testid="checkout-firstname-input" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          <FormField
+            control={form.control}
+            name="firstName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nombre y Apellidos</FormLabel>
+                <FormControl>
+                  <Input data-testid="checkout-firstname-input" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="address"
@@ -214,7 +289,7 @@ export default function StripePaymentForm({
               <FormItem>
                 <FormLabel>Dirección</FormLabel>
                 <FormControl>
-                  <Input placeholder="" data-testid="checkout-address-input" {...field} />
+                  <Input data-testid="checkout-address-input" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -262,110 +337,176 @@ export default function StripePaymentForm({
             />
           </div>
         </div>
-
-        {!isFreeOrder && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold">Método de Pago</h2>
-
-            <RadioGroup
-              value={paymentMethod}
-              onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
-              className="grid grid-cols-1 gap-4"
-            >
-              <Label
-                htmlFor="card-payment"
-                data-testid="payment-method-card"
-                className={cn(
-                  'flex flex-col rounded-lg border-2 p-4 cursor-pointer bg-white',
-                  {
-                    'border-primary ring-2 ring-primary': paymentMethod === 'card',
-                    'border-muted hover:border-muted-foreground': paymentMethod !== 'card',
-                  }
-                )}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-3">
-                    <RadioGroupItem value="card" id="card-payment" />
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="w-5 h-5" />
-                      <span className="font-semibold">Pago con Tarjeta</span>
-                    </div>
-                  </div>
-                </div>
-
-                {paymentMethod === 'card' && (
-                  <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                    <Info className="w-3 h-3" />
-                    <span>
-                      Pago seguro procesado por Stripe. Serás redirigido a su pasarela para completar el
-                      pago. Tus datos están encriptados.
-                    </span>
-                  </div>
-                )}
-              </Label>
-
-              <Label
-                htmlFor="bizum-payment"
-                data-testid="payment-method-bizum"
-                className={cn(
-                  'flex items-center justify-between rounded-lg border-2 p-4 cursor-pointer bg-white',
-                  {
-                    'border-primary ring-2 ring-primary': paymentMethod === 'bizum',
-                    'border-muted hover:border-muted-foreground': paymentMethod !== 'bizum',
-                  }
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <RadioGroupItem value="bizum" id="bizum-payment" />
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="w-5 h-5" />
-                    <span className="font-semibold">Pago con Bizum</span>
-                  </div>
-                </div>
-                <span className="font-bold text-green-600">-10% EXTRA</span>
-              </Label>
-            </RadioGroup>
-
-            {paymentMethod === 'bizum' && (
-              <div className="text-sm text-muted-foreground bg-secondary p-3 rounded-md border-l-4 border-primary">
-                <div className="flex items-center gap-2 mb-2 text-foreground font-bold">
-                  <Info className="w-4 h-4" />
-                  <span>Instrucciones de Pago</span>
-                </div>
-                Una vez confirmado el pedido, deberás realizar un Bizum al número{' '}
-                <strong className="text-foreground">680414307</strong>.
-                <br />
-                <br />
-                <strong className="text-foreground">Importante:</strong> En el concepto del Bizum, indica tu{' '}
-                <strong className="text-foreground">Nombre y Apellidos</strong> o el{' '}
-                <strong className="text-foreground">Número de Pedido</strong> que aparecerá en la siguiente
-                pantalla.
-                <br />
-                <br />
-                Una vez verificado el pago, procederemos al envío inmediato de tu consola.
-              </div>
-            )}
-          </div>
-        )}
-
-        <Button
-          type="submit"
-          className="w-full bg-black text-white hover:bg-black/90"
-          size="lg"
-          disabled={isProcessing}
-          data-testid="checkout-submit-btn"
-        >
-          {isProcessing ? (
-            <Loader2 className="animate-spin" />
-          ) : isFreeOrder ? (
-            'Confirmar Pedido'
-          ) : paymentMethod === 'bizum' ? (
-            `Confirmar Pedido (${totalAmount.toFixed(0)}€)`
-          ) : (
-            `Pagar ${totalAmount.toFixed(0)}€`
-          )}
-        </Button>
       </form>
     </Form>
+  );
+}
+
+// =============================================================================
+// Inner checkout (with access to Stripe Elements)
+// =============================================================================
+function CheckoutInner({
+  form,
+  orderId,
+  totalAmount,
+  toast,
+}: {
+  form: ReturnType<typeof useForm<FormValues>>;
+  orderId: string | null;
+  totalAmount: number;
+  toast: ReturnType<typeof useToast>['toast'];
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  async function handleSubmit() {
+    // Validate the address form first
+    const valid = await form.trigger();
+    if (!valid) {
+      toast({
+        variant: 'destructive',
+        title: 'Faltan datos',
+        description: 'Por favor, revisa los campos del formulario.',
+      });
+      return;
+    }
+    if (!stripe || !elements) return;
+
+    setIsProcessing(true);
+
+    const values = form.getValues();
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const returnUrl = `${origin}/checkout/success${
+      orderId ? `?order_id=${orderId}` : ''
+    }`;
+
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: returnUrl,
+        receipt_email: values.email,
+        payment_method_data: {
+          billing_details: {
+            name: values.firstName,
+            email: values.email,
+            phone: values.phone || undefined,
+            address: {
+              line1: values.address,
+              line2: values.apartment || undefined,
+              city: values.city,
+              postal_code: values.postalCode,
+              country: 'ES',
+            },
+          },
+        },
+      },
+    });
+
+    // If we get here without redirect, it failed.
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'No se pudo completar el pago',
+        description: error.message || 'Revisa los datos de pago e inténtalo de nuevo.',
+      });
+      setIsProcessing(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <PaymentElement
+        options={{
+          layout: { type: 'accordion', defaultCollapsed: false, radios: false, spacedAccordionItems: true },
+        }}
+      />
+      <Button
+        type="button"
+        onClick={handleSubmit}
+        disabled={!stripe || isProcessing}
+        size="lg"
+        className="w-full bg-black text-white hover:bg-black/90"
+        data-testid="checkout-submit-btn"
+      >
+        {isProcessing ? <Loader2 className="animate-spin" /> : `Pagar ${totalAmount.toFixed(0)}€`}
+      </Button>
+    </div>
+  );
+}
+
+// =============================================================================
+// Free order (coupon makes the total = 0)
+// =============================================================================
+function FreeOrderForm({
+  form,
+  cartItems,
+  totalAmount,
+}: {
+  form: ReturnType<typeof useForm<FormValues>>;
+  cartItems: Array<{
+    id: string;
+    name: string;
+    image: string;
+    price: number;
+    quantity: number;
+    color?: string;
+    isUpsell?: boolean;
+  }>;
+  totalAmount: number;
+}) {
+  const { clearCartAndOrder } = useCart();
+  const { toast } = useToast();
+  const router = useRouter();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  async function handleConfirm() {
+    const valid = await form.trigger();
+    if (!valid) return;
+    setIsProcessing(true);
+
+    const values = form.getValues();
+    try {
+      const res = await processFreeOrderAction({
+        customer: { ...values, phone: values.phone || undefined },
+        cartItems,
+        total: totalAmount,
+      });
+      if (!res.success || !res.orderId) {
+        throw new Error(res.error || 'Error procesando el pedido.');
+      }
+      clearCartAndOrder({
+        customer: { ...values, phone: values.phone || undefined },
+        orderId: res.orderId,
+        paymentMethod: 'card',
+        total: totalAmount,
+      });
+      toast({ title: '¡Pedido realizado!', description: 'Gracias. Te estamos redirigiendo...' });
+      router.push('/thank-you');
+    } catch (e: unknown) {
+      toast({
+        variant: 'destructive',
+        title: 'Error en el Pedido',
+        description: e instanceof Error ? e.message : 'Error desconocido',
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  return (
+    <div className="space-y-8">
+      <CustomerInfoFields form={form} />
+      <Button
+        type="button"
+        onClick={handleConfirm}
+        disabled={isProcessing}
+        size="lg"
+        className="w-full bg-black text-white hover:bg-black/90"
+        data-testid="checkout-submit-btn"
+      >
+        {isProcessing ? <Loader2 className="animate-spin" /> : 'Confirmar Pedido'}
+      </Button>
+    </div>
   );
 }
