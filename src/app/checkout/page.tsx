@@ -2,8 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Script from 'next/script';
-import SquarePaymentForm from '@/components/checkout/SquarePaymentForm';
+import StripePaymentForm from '@/components/checkout/StripePaymentForm';
 import OrderSummary from '@/components/checkout/OrderSummary';
 import { useCart } from '@/context/CartContext';
 import { useConfig } from '@/context/ConfigContext';
@@ -21,22 +20,14 @@ export default function CheckoutPage() {
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [isDiscountApplied, setIsDiscountApplied] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
-  const [isSdkLoaded, setIsSdkLoaded] = useState(false);
 
   useEffect(() => {
     if (isDiscountApplied) {
       setPaymentMethod('card');
     }
   }, [isDiscountApplied]);
-
-  useEffect(() => {
-    // Si el script ya estaba cargado en el window (navegación interna), refleja el estado
-    if ((window as any).Square) {
-      setIsSdkLoaded(true);
-    }
-  }, []);
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shippingFee = 0; // COD hidden, shipping is free or handled elsewhere
@@ -49,8 +40,8 @@ export default function CheckoutPage() {
     const code = couponCode.toLowerCase().trim();
 
     // Read coupons from siteContent (editable in /admin)
-    const contentCoupons = Array.isArray((siteContent as any)?.coupons)
-      ? (siteContent as any).coupons
+    const contentCoupons = Array.isArray((siteContent as Record<string, unknown>)?.coupons)
+      ? ((siteContent as Record<string, unknown>).coupons as Array<{ code?: string; type: string; value: number; title?: string; description?: string }>)
       : [];
 
     // Legacy hardcoded fallbacks (kept so nothing breaks if coupons not configured)
@@ -60,7 +51,7 @@ export default function CheckoutPage() {
       extra20: { type: 'amountOff', value: 10, title: '¡Cupón aplicado!', description: 'Has conseguido un descuento de 10€.' },
     };
 
-    const found = contentCoupons.find((c: any) => (c.code || '').toLowerCase() === code);
+    const found = contentCoupons.find((c) => (c.code || '').toLowerCase() === code);
     const coupon = found || legacy[code];
 
     if (!coupon) {
@@ -101,16 +92,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen">
-      {/* Square SDK: solo se carga aquí, no en el resto de la web */}
-      <Script
-        src={
-          process.env.NEXT_PUBLIC_SQUARE_APP_ID?.startsWith('sandbox')
-            ? 'https://sandbox.web.squarecdn.com/v1/square.js'
-            : 'https://web.squarecdn.com/v1/square.js'
-        }
-        strategy="afterInteractive"
-        onLoad={() => setIsSdkLoaded(true)}
-      />
       <div className="container mx-auto px-4 py-8 lg:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="bg-secondary p-8 rounded-lg h-fit lg:order-1">
@@ -126,13 +107,10 @@ export default function CheckoutPage() {
           </div>
           <div className="lg:order-2">
             <h1 className="text-3xl font-bold mb-6">Información y Pago</h1>
-            <SquarePaymentForm 
-              appId={process.env.NEXT_PUBLIC_SQUARE_APP_ID || 'sandbox-sq-dummy'} 
-              locationId={process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID || 'dummy-location'}
-              totalAmount={total} 
-              isSdkLoaded={isSdkLoaded}
-              paymentMethod={paymentMethod} 
-              setPaymentMethod={setPaymentMethod} 
+            <StripePaymentForm
+              totalAmount={total}
+              paymentMethod={paymentMethod}
+              setPaymentMethod={setPaymentMethod}
               isDiscountApplied={isDiscountApplied}
             />
           </div>

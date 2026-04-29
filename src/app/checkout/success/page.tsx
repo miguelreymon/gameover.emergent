@@ -1,25 +1,99 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import Link from 'next/link';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { verifyStripeSession } from '@/app/actions';
 
-export default function SuccessPage() {
+function SuccessContent() {
   const { clearCart } = useCart();
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get('session_id');
+
+  const [status, setStatus] = useState<'loading' | 'paid' | 'unpaid' | 'error' | 'no-session'>(
+    sessionId ? 'loading' : 'no-session'
+  );
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [total, setTotal] = useState<number>(0);
 
   useEffect(() => {
     clearCart();
   }, [clearCart]);
 
+  useEffect(() => {
+    if (!sessionId) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await verifyStripeSession(sessionId);
+        if (cancelled) return;
+        if (!res.success) {
+          setStatus('error');
+          return;
+        }
+        setOrderId(res.orderId);
+        setTotal(res.total);
+        setStatus(res.paid ? 'paid' : 'unpaid');
+      } catch {
+        if (!cancelled) setStatus('error');
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId]);
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center">
+        <Loader2 className="w-12 h-12 animate-spin mb-6" />
+        <h1 className="text-2xl font-semibold">Verificando tu pago...</h1>
+        <p className="text-muted-foreground mt-2">Esto solo tardará unos segundos.</p>
+      </div>
+    );
+  }
+
+  if (status === 'error' || status === 'unpaid') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center">
+        <AlertTriangle className="w-20 h-20 text-amber-500 mb-6" />
+        <h1 className="text-3xl font-bold mb-4">No hemos podido confirmar tu pago</h1>
+        <p className="text-lg text-muted-foreground mb-8 max-w-md">
+          Si ves un cargo en tu cuenta, contáctanos por WhatsApp con tu correo electrónico y lo
+          revisamos al instante.
+        </p>
+        <div className="flex gap-4">
+          <Button asChild variant="default" size="lg">
+            <Link href="/checkout">Volver al checkout</Link>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link href="/">Volver al inicio</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center">
-      <CheckCircle className="w-20 h-20 text-green-500 mb-6" />
+      <CheckCircle className="w-20 h-20 text-green-500 mb-6" data-testid="success-icon" />
       <h1 className="text-4xl font-bold mb-4">¡Gracias por tu compra!</h1>
+      {orderId && (
+        <p className="text-lg mb-2">
+          Pedido <strong>#{orderId}</strong>
+          {total > 0 ? ` · ${total.toFixed(0)}€` : ''}
+        </p>
+      )}
       <p className="text-xl text-muted-foreground mb-8 max-w-md">
-        Tu pedido ha sido procesado con éxito. Recibirás un correo de confirmación en unos minutos.
+        {status === 'no-session'
+          ? 'Tu pedido ha sido procesado con éxito. Recibirás un correo de confirmación en unos minutos.'
+          : 'Pago confirmado. Recibirás un correo de confirmación en unos minutos.'}
       </p>
       <div className="flex gap-4">
         <Button asChild variant="default" size="lg">
@@ -30,5 +104,19 @@ export default function SuccessPage() {
         </Button>
       </div>
     </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      }
+    >
+      <SuccessContent />
+    </Suspense>
   );
 }
