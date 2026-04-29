@@ -418,7 +418,7 @@ function CheckoutInner({
     <div className="space-y-4">
       <PaymentElement
         options={{
-          layout: { type: 'accordion', defaultCollapsed: false, radios: false, spacedAccordionItems: true },
+          layout: { type: 'accordion', defaultCollapsed: false, radios: 'never', spacedAccordionItems: true },
         }}
       />
       <Button
