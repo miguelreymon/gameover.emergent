@@ -36,7 +36,7 @@ export async function listImagesAction(): Promise<string[]> {
   try {
     const files = await readdir(IMAGES_DIR);
     return files
-      .filter((f) => /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(f))
+      .filter((f) => /\.(png|jpe?g|webp|gif|avif|svg|mp4|webm|mov|m4v)$/i.test(f))
       .sort();
   } catch {
     return [];

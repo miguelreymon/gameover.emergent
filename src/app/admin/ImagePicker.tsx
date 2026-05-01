@@ -9,6 +9,11 @@ type Props = {
   label?: string;
 };
 
+const VIDEO_RE = /\.(mp4|webm|mov|m4v)$/i;
+function isVideoPath(p: string) {
+  return VIDEO_RE.test(p);
+}
+
 export default function ImagePicker({ value, onChange, label }: Props) {
   const [images, setImages] = useState<string[]>([]);
   const [showPicker, setShowPicker] = useState(false);
@@ -43,6 +48,30 @@ export default function ImagePicker({ value, onChange, label }: Props) {
     e.target.value = '';
   };
 
+  const renderThumb = (src: string, className: string) => {
+    if (isVideoPath(src)) {
+      return (
+        <video
+          src={src}
+          className={className}
+          muted
+          loop
+          playsInline
+          autoPlay
+          preload="metadata"
+        />
+      );
+    }
+    return (
+      <img
+        src={src}
+        alt=""
+        className={className}
+        onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}
+      />
+    );
+  };
+
   return (
     <div className="space-y-2">
       {label && <label className="text-sm font-medium">{label}</label>}
@@ -64,14 +93,7 @@ export default function ImagePicker({ value, onChange, label }: Props) {
           Elegir
         </button>
       </div>
-      {value && value.startsWith('/') && (
-        <img
-          src={value}
-          alt=""
-          className="w-24 h-24 object-cover rounded border"
-          onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}
-        />
-      )}
+      {value && value.startsWith('/') && renderThumb(value, 'w-24 h-24 object-cover rounded border')}
 
       {showPicker && (
         <div
@@ -83,7 +105,7 @@ export default function ImagePicker({ value, onChange, label }: Props) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-4 border-b flex items-center justify-between">
-              <h3 className="font-bold">Elegir / subir imagen</h3>
+              <h3 className="font-bold">Elegir / subir imagen o vídeo</h3>
               <button
                 onClick={() => setShowPicker(false)}
                 className="text-slate-500 hover:text-slate-900"
@@ -94,21 +116,26 @@ export default function ImagePicker({ value, onChange, label }: Props) {
             <div className="p-4 border-b bg-slate-50">
               <label className="flex items-center gap-3 cursor-pointer">
                 <span className="bg-slate-900 text-white px-4 py-2 rounded text-sm">
-                  {uploading ? 'Subiendo…' : 'Subir nueva imagen'}
+                  {uploading ? 'Subiendo…' : 'Subir nuevo archivo'}
                 </span>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/*,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,.m4v"
                   onChange={handleFile}
                   className="hidden"
                   disabled={uploading}
                   data-testid="image-upload-input"
                 />
                 <span className="text-xs text-slate-500">
-                  PNG, JPG, WebP, AVIF, GIF, SVG
+                  PNG, JPG, WebP, AVIF, GIF, SVG, MP4, WebM, MOV
                 </span>
               </label>
               {uploadError && <p className="text-red-600 text-sm mt-2">{uploadError}</p>}
+              <p className="text-[11px] text-amber-700 mt-2 leading-relaxed">
+                ⚠️ Los archivos se guardan en <code>/public/images/</code>. Para que lleguen a
+                producción, haz <code>git add</code> + <code>push</code> del archivo al repo.
+                Vercel no persiste uploads en runtime.
+              </p>
             </div>
             <div className="overflow-y-auto p-4 grid grid-cols-4 sm:grid-cols-6 gap-3">
               {images.map((img) => {
@@ -127,14 +154,19 @@ export default function ImagePicker({ value, onChange, label }: Props) {
                     }`}
                     data-testid={`image-option-${img}`}
                   >
-                    <img src={path} alt={img} className="w-full h-24 object-cover" />
+                    {renderThumb(path, 'w-full h-24 object-cover')}
+                    {isVideoPath(path) && (
+                      <span className="absolute top-1 right-1 bg-black/70 text-white text-[9px] px-1.5 py-0.5 rounded">
+                        VIDEO
+                      </span>
+                    )}
                     <span className="block text-[10px] truncate p-1 bg-white">{img}</span>
                   </button>
                 );
               })}
               {images.length === 0 && (
                 <p className="col-span-full text-center text-slate-500 py-8">
-                  No hay imágenes todavía. Sube la primera con el botón de arriba.
+                  No hay archivos todavía. Sube el primero con el botón de arriba.
                 </p>
               )}
             </div>

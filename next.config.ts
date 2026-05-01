@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   compress: true,
   experimental: {
     serverActions: {
+      bodySizeLimit: '100mb',
       allowedOrigins: [
         '*.preview.emergentagent.com',
         '*.preview.emergentcf.cloud',
