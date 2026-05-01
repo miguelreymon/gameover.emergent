@@ -51,3 +51,4 @@ credentials.json
 memory/
 test_reports/
 test_result.md
+/frontend/

@@ -1,8 +1,8 @@
 {
-  "name": "frontend-proxy",
-  "version": "1.0.0",
+  "name": "emergent-preview-proxy",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "cd .. && yarn start"
+    "start": "cd /app && yarn dev"
   }
 }
