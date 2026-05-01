@@ -11,10 +11,16 @@ type FeatureSection = {
 };
 
 const VIDEO_EXT = /\.(mp4|webm|mov|m4v)(\?.*)?$/i;
+const GIF_EXT = /\.gif(\?.*)?$/i;
 
 function isVideo(src: string | undefined) {
   if (!src) return false;
   return VIDEO_EXT.test(src);
+}
+
+function isGif(src: string | undefined) {
+  if (!src) return false;
+  return GIF_EXT.test(src);
 }
 
 function FeatureMedia({ src, alt, priority }: { src: string; alt: string; priority?: boolean }) {
@@ -31,6 +37,7 @@ function FeatureMedia({ src, alt, priority }: { src: string; alt: string; priori
       />
     );
   }
+  const gif = isGif(src);
   return (
     <Image
       src={src}
@@ -42,6 +49,7 @@ function FeatureMedia({ src, alt, priority }: { src: string; alt: string; priori
       loading={priority ? 'eager' : 'lazy'}
       priority={!!priority}
       referrerPolicy="no-referrer"
+      unoptimized={gif}
     />
   );
 }
