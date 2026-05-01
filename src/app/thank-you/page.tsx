@@ -124,13 +124,13 @@ export default function ThankYouPage() {
                                 <p className="mb-2 text-sm text-muted-foreground">Al número de teléfono:</p>
                                 <div className="flex items-center justify-center gap-2 mb-6">
                                     <div className="text-3xl font-black tracking-wider bg-white px-4 py-2 rounded-lg shadow-sm border border-primary/10">
-                                        680414307
+                                        622431478
                                     </div>
                                     <Button 
                                         variant="outline" 
                                         size="icon" 
                                         className="h-12 w-12 rounded-lg"
-                                        onClick={() => copyToClipboard('680414307', 'phone')}
+                                        onClick={() => copyToClipboard('622431478', 'phone')}
                                     >
                                         {copiedField === 'phone' ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5" />}
                                     </Button>
@@ -165,7 +165,7 @@ export default function ThankYouPage() {
                                         asChild
                                     >
                                         <a 
-                                            href={`https://wa.me/34680414307?text=${encodeURIComponent(`Hola, acabo de realizar el pedido #${orderId} por ${orderDetails.total?.toFixed(0)}€ vía Bizum. Aquí tienes el comprobante.`)}`}
+                                            href={`https://wa.me/34622431478?text=${encodeURIComponent(`Hola, acabo de realizar el pedido #${orderId} por ${orderDetails.total?.toFixed(0)}€ vía Bizum. Aquí tienes el comprobante.`)}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >

@@ -29,6 +29,7 @@ import {
   createPaymentIntentAction,
   updatePaymentIntentAmountAction,
   processFreeOrderAction,
+  sendAbandonedCartAction,
 } from '@/app/actions';
 import { Loader2, Info, ShieldCheck } from 'lucide-react';
 import {
@@ -40,7 +41,13 @@ import {
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Correo electrónico inválido.' }),
-  phone: z.string().optional(),
+  phone: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || /^(\+?34)?[\s-]?[67]\d{2}[\s-]?\d{3}[\s-]?\d{3}$/.test(val.trim()),
+      { message: 'Teléfono español inválido. Debe empezar por 6 o 7 y tener 9 dígitos.' }
+    ),
   firstName: z.string().min(1, 'El nombre es obligatorio.'),
   address: z.string().min(1, 'La dirección es obligatoria.'),
   apartment: z.string().optional(),
@@ -135,6 +142,18 @@ export default function StripePaymentForm({ totalAmount }: StripePaymentFormProp
         setClientSecret(res.clientSecret);
         setPaymentIntentId(res.paymentIntentId);
         setOrderId(res.orderId);
+
+        // Fire-and-forget: send admin an abandoned-cart notice.
+        // If the customer pays, they'll also receive the normal order email.
+        if (res.paymentIntentId && res.orderId) {
+          sendAbandonedCartAction({
+            customer: form.getValues(),
+            cartItems,
+            total: totalAmount,
+            orderId: res.orderId,
+            paymentIntentId: res.paymentIntentId,
+          }).catch((err) => console.warn('Abandoned-cart email failed:', err));
+        }
       })
       .catch((e) => setIntentError(e instanceof Error ? e.message : 'Error iniciando pago.'))
       .finally(() => setCreatingIntent(false));
@@ -192,21 +211,34 @@ export default function StripePaymentForm({ totalAmount }: StripePaymentFormProp
         )}
 
         {clientSecret && customerReady && (
-          <Elements
-            stripe={stripeInstance}
-            options={{
-              clientSecret,
-              appearance: { theme: 'stripe', labels: 'floating' },
-              locale: 'es',
-            }}
-          >
-            <CheckoutInner
-              form={form}
-              orderId={orderId}
-              totalAmount={totalAmount}
-              toast={toast}
-            />
-          </Elements>
+          <>
+            <div className="rounded-md border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+              <p className="font-semibold mb-1">
+                ¿Vas a pagar con <span className="text-[#0099cc]">Bizum</span>?
+              </p>
+              <p>
+                Despliega <strong>Bizum</strong> abajo e introduce el <strong>número de móvil
+                asociado a tu cuenta Bizum</strong> (debe estar dado de alta en tu banco).
+                Recibirás una notificación en tu app bancaria para autorizar el pago.
+                Solo se aceptan móviles españoles (empiezan por 6 o 7, 9 dígitos).
+              </p>
+            </div>
+            <Elements
+              stripe={stripeInstance}
+              options={{
+                clientSecret,
+                appearance: { theme: 'stripe', labels: 'floating' },
+                locale: 'es',
+              }}
+            >
+              <CheckoutInner
+                form={form}
+                orderId={orderId}
+                totalAmount={totalAmount}
+                toast={toast}
+              />
+            </Elements>
+          </>
         )}
       </div>
     </div>
@@ -242,7 +274,7 @@ function CustomerInfoFields({ form }: { form: ReturnType<typeof useForm<FormValu
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center gap-2">
-                    Teléfono
+                    Teléfono móvil
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -250,15 +282,22 @@ function CustomerInfoFields({ form }: { form: ReturnType<typeof useForm<FormValu
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>
-                            Necesario para Bizum y aconsejable para que el repartidor pueda
-                            contactarte.
+                            <strong>Imprescindible si pagas con Bizum</strong> — debe ser el
+                            número asociado a tu cuenta Bizum. También nos permite que el
+                            repartidor te contacte.
                           </p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </FormLabel>
                   <FormControl>
-                    <Input data-testid="checkout-phone-input" {...field} />
+                    <Input
+                      type="tel"
+                      inputMode="tel"
+                      placeholder="6XX XXX XXX"
+                      data-testid="checkout-phone-input"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

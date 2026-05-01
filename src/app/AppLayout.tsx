@@ -16,7 +16,7 @@ export function AppLayout({ children, initialConfig }: { children: React.ReactNo
 
   const config = initialConfig || defaultContent;
   const announcementBar = config?.header?.announcementBar || '🤍​ OFERTA BLACKFRIDAY SOLO HOY –50 % DE DESCUENTO Y ENVIO GRATIS 🤍';
-  const whatsAppNumber = config?.footer?.whatsAppNumber || '680414307';
+  const whatsAppNumber = config?.footer?.whatsAppNumber || '622431478';
   const cleanNumber = whatsAppNumber.replace(/\D/g, '');
 
   if (isAdminPage) {

@@ -452,7 +452,7 @@ async function sendOrderNotification(input: OrderPayload & { orderId: string; pa
 
     const { data, error } = await resend.emails.send({
       from: 'Gameover Orders <onboarding@resend.dev>',
-      to: ['miguelreynau@gmail.com'],
+      to: ['miguelreynau.ia@gmail.com'],
       subject: `NUEVO PEDIDO RECIBIDO #${input.orderId}`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
@@ -492,6 +492,92 @@ async function sendOrderNotification(input: OrderPayload & { orderId: string; pa
     }
   } catch (e) {
     console.error('Error in sendOrderNotification:', e);
+  }
+}
+
+// =============================================================================
+// ABANDONED CART (customer filled info + triggered PaymentIntent, but never paid)
+// =============================================================================
+// Fires once per checkout session when the PaymentIntent is first created.
+// Sends an email to the admin so they can follow up manually.
+
+export async function sendAbandonedCartAction({
+  customer,
+  cartItems,
+  total,
+  orderId,
+  paymentIntentId,
+}: {
+  customer: Customer;
+  cartItems: CartItem[];
+  total: number;
+  orderId: string;
+  paymentIntentId: string;
+}): Promise<{ success: boolean; error: string | null }> {
+  try {
+    if (!resend) {
+      console.log('--- SIMULANDO AVISO DE CARRITO PENDIENTE (RESEND NO CONFIGURADO) ---');
+      return { success: true, error: null };
+    }
+
+    const adminEmail = process.env.ADMIN_EMAIL || 'miguelreynau.ia@gmail.com';
+
+    const itemsHtml = cartItems
+      .map(
+        (item) =>
+          `<li>${item.name}${item.color ? ` (${item.color})` : ''} &mdash; x${item.quantity} &mdash; ${item.price.toFixed(0)}€</li>`
+      )
+      .join('');
+
+    const { error } = await resend.emails.send({
+      from: 'Gameover Pendientes <onboarding@resend.dev>',
+      to: [adminEmail],
+      subject: `🛒 Carrito pendiente de pago #${orderId} · ${total.toFixed(0)}€`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <h2 style="color: #ea580c;">Carrito pendiente de pago</h2>
+          <p>
+            Un cliente ha rellenado sus datos y ha iniciado el proceso de pago, pero
+            aún no lo ha completado. Puedes contactarle para ofrecerle ayuda o un descuento.
+          </p>
+
+          <div style="background: #fff7ed; padding: 12px 16px; border-radius: 8px; margin: 16px 0;">
+            <p style="margin: 0;"><strong>Pedido provisional:</strong> #${orderId}</p>
+            <p style="margin: 4px 0 0 0;"><strong>PaymentIntent:</strong> ${paymentIntentId}</p>
+            <p style="margin: 4px 0 0 0;"><strong>Total:</strong> ${total.toFixed(0)}€</p>
+          </div>
+
+          <h3>Cliente</h3>
+          <p style="margin: 0;"><strong>Nombre:</strong> ${customer.firstName}</p>
+          <p style="margin: 4px 0 0 0;"><strong>Email:</strong> <a href="mailto:${customer.email}">${customer.email}</a></p>
+          <p style="margin: 4px 0 0 0;"><strong>Teléfono:</strong> ${customer.phone || 'No proporcionado'}</p>
+
+          <h3>Dirección</h3>
+          <p style="margin: 0;">
+            ${customer.address}${customer.apartment ? `, ${customer.apartment}` : ''}<br>
+            ${customer.city}, ${customer.postalCode}<br>
+            ${customer.country}
+          </p>
+
+          <h3>Artículos en el carrito</h3>
+          <ul>${itemsHtml}</ul>
+
+          <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
+          <p style="font-size: 12px; color: #9ca3af;">
+            Aviso automático de Gameover. Solo se envía una vez por sesión de checkout.
+          </p>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error('Error sending abandoned cart email:', error);
+      return { success: false, error: 'No se pudo enviar el aviso.' };
+    }
+    return { success: true, error: null };
+  } catch (e) {
+    console.error('Exception in sendAbandonedCartAction:', e);
+    return { success: false, error: e instanceof Error ? e.message : 'Error desconocido.' };
   }
 }
 
