@@ -62,6 +62,14 @@ interface StripePaymentFormProps {
   totalAmount: number;
 }
 
+// Bizum launch promo: 10% off when paying with Bizum.
+const BIZUM_DISCOUNT_PCT = 10;
+const BIZUM_PROMO_ENABLED = true;
+
+function applyBizumDiscount(total: number) {
+  return Math.round(total * (100 - BIZUM_DISCOUNT_PCT)) / 100;
+}
+
 // Lazily create the Stripe instance only when the publishable key is available.
 let stripePromise: Promise<StripeJs | null> | null = null;
 function getStripe() {
@@ -84,9 +92,15 @@ export default function StripePaymentForm({ totalAmount }: StripePaymentFormProp
   const [orderId, setOrderId] = useState<string | null>(null);
   const [creatingIntent, setCreatingIntent] = useState(false);
   const [intentError, setIntentError] = useState<string | null>(null);
+  // Tracks which payment method the customer has currently selected in the PaymentElement.
+  const [selectedPmType, setSelectedPmType] = useState<string | null>(null);
 
   const isFreeOrder = totalAmount <= 0;
   const stripeInstance = useMemo(() => getStripe(), []);
+
+  const bizumSelected = BIZUM_PROMO_ENABLED && selectedPmType === 'bizum';
+  const effectiveTotal = bizumSelected ? applyBizumDiscount(totalAmount) : totalAmount;
+  const bizumSavings = totalAmount - effectiveTotal;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -159,17 +173,17 @@ export default function StripePaymentForm({ totalAmount }: StripePaymentFormProp
       .finally(() => setCreatingIntent(false));
   }, [customerReady, clientSecret, creatingIntent, cartItems, totalAmount, isFreeOrder, form]);
 
-  // 2) If totalAmount changes (coupon, qty), update the PaymentIntent amount
+  // 2) If the effective total changes (coupon, qty, Bizum discount), update the PaymentIntent amount
   const lastSyncedTotal = useRef<number | null>(null);
   useEffect(() => {
     if (!paymentIntentId) return;
     if (isFreeOrder) return;
-    if (lastSyncedTotal.current === totalAmount) return;
-    lastSyncedTotal.current = totalAmount;
-    updatePaymentIntentAmountAction({ paymentIntentId, total: totalAmount }).catch((e) =>
+    if (lastSyncedTotal.current === effectiveTotal) return;
+    lastSyncedTotal.current = effectiveTotal;
+    updatePaymentIntentAmountAction({ paymentIntentId, total: effectiveTotal }).catch((e) =>
       console.warn('Update PI amount failed:', e)
     );
-  }, [paymentIntentId, totalAmount, isFreeOrder]);
+  }, [paymentIntentId, effectiveTotal, isFreeOrder]);
 
   // === FREE ORDER (coupon mike2) ===
   if (isFreeOrder) {
@@ -191,6 +205,22 @@ export default function StripePaymentForm({ totalAmount }: StripePaymentFormProp
           Pago seguro procesado por Stripe. Aceptamos tarjeta, Apple&nbsp;Pay, Google&nbsp;Pay y
           Bizum. Tus datos están encriptados.
         </p>
+
+        {BIZUM_PROMO_ENABLED && (
+          <div className="rounded-md border-2 border-[#0099cc] bg-gradient-to-r from-[#e0f7ff] to-[#c8edff] p-4 flex items-center gap-3">
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#0099cc] text-white font-bold flex items-center justify-center text-sm">
+              -{BIZUM_DISCOUNT_PCT}%
+            </div>
+            <div className="flex-1 text-sm">
+              <p className="font-bold text-[#005b7a]">
+                🎉 Promo lanzamiento: paga con Bizum y ahórrate un {BIZUM_DISCOUNT_PCT}%
+              </p>
+              <p className="text-[#005b7a]/80">
+                Selecciona <strong>Bizum</strong> abajo y el descuento se aplica automáticamente.
+              </p>
+            </div>
+          </div>
+        )}
 
         {!customerReady && (
           <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
@@ -223,6 +253,19 @@ export default function StripePaymentForm({ totalAmount }: StripePaymentFormProp
                 Solo se aceptan móviles españoles (empiezan por 6 o 7, 9 dígitos).
               </p>
             </div>
+
+            {bizumSelected && (
+              <div className="rounded-md border-2 border-green-500 bg-green-50 p-3 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-semibold text-green-900">
+                  <ShieldCheck className="w-5 h-5 text-green-600" />
+                  Descuento Bizum aplicado
+                </div>
+                <div className="text-sm font-bold text-green-900">
+                  −{bizumSavings.toFixed(2)}€
+                </div>
+              </div>
+            )}
+
             <Elements
               stripe={stripeInstance}
               options={{
@@ -235,6 +278,8 @@ export default function StripePaymentForm({ totalAmount }: StripePaymentFormProp
                 form={form}
                 orderId={orderId}
                 totalAmount={totalAmount}
+                effectiveTotal={effectiveTotal}
+                onPaymentTypeChange={setSelectedPmType}
                 toast={toast}
               />
             </Elements>
@@ -388,16 +433,21 @@ function CheckoutInner({
   form,
   orderId,
   totalAmount,
+  effectiveTotal,
+  onPaymentTypeChange,
   toast,
 }: {
   form: ReturnType<typeof useForm<FormValues>>;
   orderId: string | null;
   totalAmount: number;
+  effectiveTotal: number;
+  onPaymentTypeChange: (type: string | null) => void;
   toast: ReturnType<typeof useToast>['toast'];
 }) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
+  const hasDiscount = effectiveTotal < totalAmount;
 
   async function handleSubmit() {
     // Validate the address form first
@@ -459,6 +509,11 @@ function CheckoutInner({
         options={{
           layout: { type: 'accordion', defaultCollapsed: false, radios: 'never', spacedAccordionItems: true },
         }}
+        onChange={(e) => {
+          // e.value.type: 'card' | 'bizum' | 'apple_pay' | 'google_pay' | 'link' | ...
+          const t = (e.value && (e.value as { type?: string }).type) || null;
+          onPaymentTypeChange(t);
+        }}
       />
       <Button
         type="button"
@@ -468,7 +523,16 @@ function CheckoutInner({
         className="w-full bg-black text-white hover:bg-black/90"
         data-testid="checkout-submit-btn"
       >
-        {isProcessing ? <Loader2 className="animate-spin" /> : `Pagar ${totalAmount.toFixed(0)}€`}
+        {isProcessing ? (
+          <Loader2 className="animate-spin" />
+        ) : hasDiscount ? (
+          <span className="flex items-center gap-2">
+            Pagar {effectiveTotal.toFixed(2)}€
+            <span className="line-through opacity-60 text-sm">{totalAmount.toFixed(0)}€</span>
+          </span>
+        ) : (
+          `Pagar ${totalAmount.toFixed(0)}€`
+        )}
       </Button>
     </div>
   );
