@@ -1,0 +1,54 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+node_modules/@next/swc-linux-arm64-gnu/next-swc.linux-arm64-gnu.node
+node_modules/@next/swc-linux-arm64-musl/next-swc.linux-arm64-musl.node
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
+yarn.lock
+.next
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
+
+# Emergent platform folders
+memory/
+test_reports/
+test_result.md
+/frontend/
