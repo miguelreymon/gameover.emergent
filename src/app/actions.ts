@@ -6,6 +6,7 @@ import { Resend } from 'resend';
 import Stripe from 'stripe';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
+import contentBundled from '@/lib/content.json';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -639,9 +640,26 @@ export async function lookupFakeOrderAction(
       };
     }
 
-    const raw = await readFile(join(process.cwd(), 'src/lib/content.json'), 'utf-8');
-    const parsed = JSON.parse(raw);
-    const orders: any[] = parsed?.siteContent?.fakeOrders || [];
+    // Try reading the live file first (works in local dev so admin edits show
+    // instantly). On Vercel (read-only FS where the path may not resolve) we
+    // fall back to the JSON that was bundled into the function at build time.
+    let orders: any[] = [];
+    try {
+      const raw = await readFile(join(process.cwd(), 'src/lib/content.json'), 'utf-8');
+      const parsed = JSON.parse(raw);
+      orders = parsed?.siteContent?.fakeOrders || [];
+    } catch {
+      orders = (contentBundled as any)?.siteContent?.fakeOrders || [];
+    }
+    // Safety net: if the live file existed but had no fakeOrders array yet,
+    // also check the bundled version (covers freshly-deployed builds where
+    // the live read returned an empty array for some other reason).
+    if (!Array.isArray(orders) || orders.length === 0) {
+      const bundledOrders = (contentBundled as any)?.siteContent?.fakeOrders || [];
+      if (Array.isArray(bundledOrders) && bundledOrders.length > 0) {
+        orders = bundledOrders;
+      }
+    }
 
     const match = orders.find((o) => normalize(o?.trackingCode) === code);
     if (!match) {
