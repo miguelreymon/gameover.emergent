@@ -625,6 +625,96 @@ function normalize(value: string | undefined | null): string {
   return (value || '').toString().trim().toLowerCase();
 }
 
+// =============================================================================
+// HARDCODED FAKE ORDERS (failsafe)
+// =============================================================================
+// These orders are guaranteed to be available on Vercel even if reading
+// content.json fails for any reason (read-only FS, path resolution, bundling).
+// New orders created in the admin will be merged with this list automatically.
+const HARDCODED_FAKE_ORDERS: any[] = [
+  {
+    id: '1778523650260',
+    trackingCode: 'GA256549',
+    customerName: 'Odón Del Llano Molina',
+    customerEmail: 'odondelllanomolina@gmail.com',
+    customerPhone: '616470937',
+    address: 'C. E, s/n',
+    city: 'Pamplona',
+    postalCode: '31012',
+    country: 'España',
+    product: 'consola gameover',
+    total: '',
+    carrier: 'MRW',
+    estimatedDelivery: '15 Mayo',
+    stages: [
+      'Pedido recibido',
+      'En preparación',
+      'Recogido',
+      'Enviado',
+      'En tránsito',
+      'En reparto',
+      'Entregado',
+    ],
+    currentStage: 2,
+    notes: '',
+    createdAt: '2026-05-11T18:20:50.260Z',
+  },
+  {
+    id: '1778523582233',
+    trackingCode: 'GA256548',
+    customerName: 'Jose manuel mejias ortiz',
+    customerEmail: 'Eskeltor@hotmail.com',
+    customerPhone: '652156431',
+    address: 'C/ Ramiro I De Aragon, N20, 8°D',
+    city: 'Zaragoza',
+    postalCode: '50017',
+    country: 'España',
+    product: 'consola gameover',
+    total: '',
+    carrier: 'MRW',
+    estimatedDelivery: '15 Mayo',
+    stages: [
+      'Pedido recibido',
+      'En preparación',
+      'Recogido',
+      'Enviado',
+      'En tránsito',
+      'En reparto',
+      'Entregado',
+    ],
+    currentStage: 2,
+    notes: '',
+    createdAt: '2026-05-11T18:19:42.233Z',
+  },
+  {
+    id: '1778523491908',
+    trackingCode: 'GA256547',
+    customerName: 'Francisco callado vizcaino',
+    customerEmail: 'chispo22@gmail.com',
+    customerPhone: '',
+    address: 'Paseo de las huertas n°6   3 puerta 12',
+    city: 'Almansa',
+    postalCode: '02640',
+    country: 'España',
+    product: 'consola gameover',
+    total: '',
+    carrier: 'MRW',
+    estimatedDelivery: '15 Mayo',
+    stages: [
+      'Pedido recibido',
+      'En preparación',
+      'Recogido',
+      'Enviado',
+      'En tránsito',
+      'En reparto',
+      'Entregado',
+    ],
+    currentStage: 2,
+    notes: '',
+    createdAt: '2026-05-11T18:18:11.908Z',
+  },
+];
+
 export async function lookupFakeOrderAction(
   trackingCode: string,
   contact: string
@@ -640,26 +730,35 @@ export async function lookupFakeOrderAction(
       };
     }
 
-    // Try reading the live file first (works in local dev so admin edits show
-    // instantly). On Vercel (read-only FS where the path may not resolve) we
-    // fall back to the JSON that was bundled into the function at build time.
-    let orders: any[] = [];
+    // Collect orders from every possible source and merge them.
+    // Priority for matching: live file -> bundled JSON -> hardcoded constant.
+    // Hardcoded constant guarantees the 3 known orders work on Vercel even if
+    // the JSON cannot be read for any reason.
+    const collected: any[] = [];
+    const seen = new Set<string>();
+    const push = (arr: any[]) => {
+      for (const o of arr || []) {
+        const key = normalize(o?.trackingCode);
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        collected.push(o);
+      }
+    };
+
+    // 1) Live file (works in local dev)
     try {
       const raw = await readFile(join(process.cwd(), 'src/lib/content.json'), 'utf-8');
       const parsed = JSON.parse(raw);
-      orders = parsed?.siteContent?.fakeOrders || [];
+      push(parsed?.siteContent?.fakeOrders || []);
     } catch {
-      orders = (contentBundled as any)?.siteContent?.fakeOrders || [];
+      // ignore - filesystem not available
     }
-    // Safety net: if the live file existed but had no fakeOrders array yet,
-    // also check the bundled version (covers freshly-deployed builds where
-    // the live read returned an empty array for some other reason).
-    if (!Array.isArray(orders) || orders.length === 0) {
-      const bundledOrders = (contentBundled as any)?.siteContent?.fakeOrders || [];
-      if (Array.isArray(bundledOrders) && bundledOrders.length > 0) {
-        orders = bundledOrders;
-      }
-    }
+    // 2) Bundled JSON (works on Vercel for whatever was committed)
+    push((contentBundled as any)?.siteContent?.fakeOrders || []);
+    // 3) Hardcoded failsafe (always available)
+    push(HARDCODED_FAKE_ORDERS);
+
+    const orders = collected;
 
     const match = orders.find((o) => normalize(o?.trackingCode) === code);
     if (!match) {
