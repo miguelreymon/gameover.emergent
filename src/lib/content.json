@@ -948,6 +948,88 @@
       "accent": "#2EA85C",
       "announcementBg": "#000000"
     },
-    "fakeOrders": []
+    "fakeOrders": [
+      {
+        "id": "1778522331882",
+        "trackingCode": "GA256547",
+        "customerName": "Odón Del Llano",
+        "customerEmail": "odondelllanomolina@gmail.com",
+        "customerPhone": "616470937",
+        "address": "C. E, s/n",
+        "city": "Pamplona",
+        "postalCode": "31012",
+        "country": "España",
+        "product": "consola gameover",
+        "total": "",
+        "carrier": "MRW",
+        "estimatedDelivery": "15 Mayo",
+        "stages": [
+          "Pedido recibido",
+          "En preparación",
+          "Recogido",
+          "Enviado",
+          "En tránsito",
+          "En reparto",
+          "Entregado"
+        ],
+        "currentStage": 2,
+        "notes": "",
+        "createdAt": "2026-05-11T17:58:51.882Z"
+      },
+      {
+        "id": "1778520446351",
+        "trackingCode": "GA256546",
+        "customerName": "Jose Manuel mejias",
+        "customerEmail": "eskeltor@hotmail.com",
+        "customerPhone": "652156431",
+        "address": "calle ramiro I de aragon n20 8D",
+        "city": "Zaragoza",
+        "postalCode": "50017",
+        "country": "España",
+        "product": "consola gameover",
+        "total": "",
+        "carrier": "MRW ",
+        "estimatedDelivery": "15 Mayo",
+        "stages": [
+          "Pedido recibido",
+          "En preparación",
+          "Recogido",
+          "Enviado",
+          "En tránsito",
+          "En reparto",
+          "Entregado"
+        ],
+        "currentStage": 2,
+        "notes": "",
+        "createdAt": "2026-05-11T17:27:26.351Z"
+      },
+      {
+        "id": "1778520313999",
+        "trackingCode": "GA256545",
+        "customerName": "Francisco Callado Vizcaino",
+        "customerEmail": "chispo22@gmail.com",
+        "customerPhone": "653998618",
+        "address": "Paseo de las huertas 6 puerta 12",
+        "city": "Almansa",
+        "postalCode": "02640",
+        "country": "España",
+        "product": "consola gameover",
+        "total": "",
+        "carrier": "MRW",
+        "estimatedDelivery": "15 Mayo",
+        "stages": [
+          "Pedido recibido",
+          "En preparación",
+          "Recogido",
+          "Enviado",
+          "En tránsito",
+          "En reparto",
+          "Entregado"
+        ],
+        "currentStage": 2,
+        "notes": "",
+        "createdAt": "2026-05-11T17:25:13.999Z"
+      }
+    ]
   }
 }
