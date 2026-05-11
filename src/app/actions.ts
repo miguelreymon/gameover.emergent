@@ -4,6 +4,8 @@
 import { z } from 'zod';
 import { Resend } from 'resend';
 import Stripe from 'stripe';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -593,5 +595,117 @@ export async function submitReviewAction(input: SubmitReviewInput): Promise<Subm
   } catch (error) {
     console.error('Error submitting review:', error);
     return { success: false, isVerified: false };
+  }
+}
+
+// =============================================================================
+// FAKE ORDER TRACKING (manual / admin-managed)
+// =============================================================================
+// The admin creates orders inside `siteContent.fakeOrders` and gives the
+// tracking code to the customer. The customer enters the code + email/phone/CP
+// on /localizar-pedido and we return the current shipping stage.
+
+export type FakeOrderPublic = {
+  trackingCode: string;
+  customerFirstName: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  product: string;
+  total: string;
+  carrier: string;
+  estimatedDelivery: string;
+  stages: string[];
+  currentStage: number;
+  createdAt: string;
+};
+
+function normalize(value: string | undefined | null): string {
+  return (value || '').toString().trim().toLowerCase();
+}
+
+export async function lookupFakeOrderAction(
+  trackingCode: string,
+  contact: string
+): Promise<{ success: boolean; order: FakeOrderPublic | null; error: string | null }> {
+  try {
+    const code = normalize(trackingCode);
+    const c = normalize(contact);
+    if (!code || !c) {
+      return {
+        success: false,
+        order: null,
+        error: 'Introduce el código de seguimiento y un dato de contacto.',
+      };
+    }
+
+    const raw = await readFile(join(process.cwd(), 'src/lib/content.json'), 'utf-8');
+    const parsed = JSON.parse(raw);
+    const orders: any[] = parsed?.siteContent?.fakeOrders || [];
+
+    const match = orders.find((o) => normalize(o?.trackingCode) === code);
+    if (!match) {
+      return {
+        success: false,
+        order: null,
+        error:
+          'No hemos encontrado ningún pedido con esos datos. Revisa el código de seguimiento.',
+      };
+    }
+
+    // Validate contact: email OR phone OR postal code
+    const phoneDigits = (s: string) => s.replace(/\D/g, '');
+    const contactMatches =
+      normalize(match.customerEmail) === c ||
+      normalize(match.customerPhone) === c ||
+      (phoneDigits(match.customerPhone || '').length > 0 &&
+        phoneDigits(match.customerPhone || '') === phoneDigits(c)) ||
+      normalize(match.postalCode) === c;
+
+    if (!contactMatches) {
+      return {
+        success: false,
+        order: null,
+        error:
+          'El código existe pero el email, teléfono o código postal no coincide. Por seguridad no podemos mostrar el pedido.',
+      };
+    }
+
+    const stages: string[] =
+      Array.isArray(match.stages) && match.stages.length > 0
+        ? match.stages
+        : ['Pedido recibido', 'En preparación', 'Enviado', 'En tránsito', 'En reparto', 'Entregado'];
+    const currentStage = Math.max(
+      0,
+      Math.min(stages.length - 1, Number(match.currentStage) || 0)
+    );
+
+    const firstName = (match.customerName || '').toString().trim().split(/\s+/)[0] || '';
+
+    return {
+      success: true,
+      error: null,
+      order: {
+        trackingCode: match.trackingCode || '',
+        customerFirstName: firstName,
+        city: match.city || '',
+        postalCode: match.postalCode || '',
+        country: match.country || '',
+        product: match.product || '',
+        total: match.total || '',
+        carrier: match.carrier || '',
+        estimatedDelivery: match.estimatedDelivery || '',
+        stages,
+        currentStage,
+        createdAt: match.createdAt || '',
+      },
+    };
+  } catch (error) {
+    console.error('lookupFakeOrderAction error:', error);
+    return {
+      success: false,
+      order: null,
+      error: 'No hemos podido consultar el pedido. Inténtalo de nuevo en unos minutos.',
+    };
   }
 }

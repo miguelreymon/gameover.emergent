@@ -129,6 +129,7 @@ const TABS = [
   'reviews',
   'faq',
   'cupones',
+  'pedidos',
   'imagenes',
   'tema',
 ] as const;
@@ -208,6 +209,7 @@ export default function AdminDashboard({ initialContent }: { initialContent: any
         {tab === 'reviews' && <ReviewsTab sc={sc} update={update} />}
         {tab === 'faq' && <FaqTab sc={sc} update={update} />}
         {tab === 'cupones' && <CouponsTab sc={sc} update={update} />}
+        {tab === 'pedidos' && <FakeOrdersTab sc={sc} update={update} />}
         {tab === 'imagenes' && <ImagesTab />}
         {tab === 'tema' && <ThemeTab sc={sc} update={update} />}
       </div>
@@ -1578,3 +1580,290 @@ function ThemeTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => void
   );
 }
 
+
+
+/* ---------- Pedidos fake (tracking manual) ---------- */
+
+const DEFAULT_FAKE_STAGES = [
+  'Pedido recibido',
+  'En preparación',
+  'Enviado',
+  'En tránsito',
+  'En reparto',
+  'Entregado',
+];
+
+function makeTrackingCode(): string {
+  // GO-XXXX-XXXX (gameover tracking)
+  const part = () =>
+    Math.random().toString(36).slice(2, 6).toUpperCase().replace(/[^A-Z0-9]/g, 'X');
+  return `GO-${part()}-${part()}`;
+}
+
+function FakeOrdersTab({
+  sc,
+  update,
+}: {
+  sc: AnyObj;
+  update: (fn: (d: AnyObj) => void) => void;
+}) {
+  const orders: AnyObj[] = sc.fakeOrders || [];
+
+  const setO = (mut: (arr: AnyObj[]) => void) =>
+    update((d) => {
+      if (!Array.isArray(d.siteContent.fakeOrders)) d.siteContent.fakeOrders = [];
+      mut(d.siteContent.fakeOrders);
+    });
+
+  const addOrder = () =>
+    setO((a) =>
+      a.unshift({
+        id: String(Date.now()),
+        trackingCode: makeTrackingCode(),
+        customerName: '',
+        customerEmail: '',
+        customerPhone: '',
+        address: '',
+        city: '',
+        postalCode: '',
+        country: 'España',
+        product: '',
+        total: '',
+        carrier: 'Correos Express',
+        estimatedDelivery: '',
+        stages: [...DEFAULT_FAKE_STAGES],
+        currentStage: 0,
+        notes: '',
+        createdAt: new Date().toISOString(),
+      })
+    );
+
+  return (
+    <Section title={`Pedidos de seguimiento manual (${orders.length})`}>
+      <p className="text-sm text-slate-600">
+        Crea pedidos &laquo;ficticios&raquo; con un código de seguimiento. Cuando le pases ese
+        código al cliente, podrá introducirlo en la página{' '}
+        <a href="/localizar-pedido" className="underline" target="_blank" rel="noopener">
+          Localizar tu pedido
+        </a>{' '}
+        junto con su email, teléfono o código postal para ver la barra de progreso. Tú eliges desde
+        aquí en qué fase está cada pedido.
+      </p>
+
+      <div className="flex justify-end">
+        <AddBtn onClick={addOrder}>+ Añadir pedido</AddBtn>
+      </div>
+
+      {orders.length === 0 && (
+        <div className="text-sm text-slate-500 italic">
+          Todavía no has creado ningún pedido. Pulsa &laquo;+ Añadir pedido&raquo; para empezar.
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {orders.map((o: AnyObj, i: number) => {
+          const stages: string[] =
+            Array.isArray(o.stages) && o.stages.length > 0 ? o.stages : DEFAULT_FAKE_STAGES;
+          const current = Math.max(0, Math.min(stages.length - 1, Number(o.currentStage) || 0));
+
+          return (
+            <div
+              key={o.id || i}
+              className="border rounded-lg p-4 bg-slate-50 space-y-3"
+              data-testid={`admin-fake-order-${i}`}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="font-mono text-sm bg-slate-900 text-white px-3 py-1 rounded">
+                  {o.trackingCode || '(sin código)'}
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setO((a) => (a[i].trackingCode = makeTrackingCode()))}
+                    className="text-xs text-slate-600 underline hover:text-slate-900"
+                  >
+                    Regenerar código
+                  </button>
+                  <RemoveBtn onClick={() => setO((a) => a.splice(i, 1))} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Field label="Código de seguimiento (el que recibe el cliente)">
+                  <Text
+                    value={o.trackingCode || ''}
+                    onChange={(v) => setO((a) => (a[i].trackingCode = v))}
+                    testid={`fake-order-tracking-${i}`}
+                  />
+                </Field>
+                <Field label="Producto / referencia interna">
+                  <Text
+                    value={o.product || ''}
+                    onChange={(v) => setO((a) => (a[i].product = v))}
+                  />
+                </Field>
+                <Field label="Nombre del cliente">
+                  <Text
+                    value={o.customerName || ''}
+                    onChange={(v) => setO((a) => (a[i].customerName = v))}
+                  />
+                </Field>
+                <Field label="Total (texto libre, ej. 59,90 €)">
+                  <Text
+                    value={o.total || ''}
+                    onChange={(v) => setO((a) => (a[i].total = v))}
+                  />
+                </Field>
+                <Field label="Email del cliente">
+                  <Text
+                    value={o.customerEmail || ''}
+                    onChange={(v) => setO((a) => (a[i].customerEmail = v.trim()))}
+                  />
+                </Field>
+                <Field label="Teléfono del cliente">
+                  <Text
+                    value={o.customerPhone || ''}
+                    onChange={(v) => setO((a) => (a[i].customerPhone = v.trim()))}
+                  />
+                </Field>
+                <Field label="Dirección">
+                  <Text
+                    value={o.address || ''}
+                    onChange={(v) => setO((a) => (a[i].address = v))}
+                  />
+                </Field>
+                <Field label="Ciudad">
+                  <Text
+                    value={o.city || ''}
+                    onChange={(v) => setO((a) => (a[i].city = v))}
+                  />
+                </Field>
+                <Field label="Código postal">
+                  <Text
+                    value={o.postalCode || ''}
+                    onChange={(v) => setO((a) => (a[i].postalCode = v.trim()))}
+                  />
+                </Field>
+                <Field label="País">
+                  <Text
+                    value={o.country || ''}
+                    onChange={(v) => setO((a) => (a[i].country = v))}
+                  />
+                </Field>
+                <Field label="Transportista (opcional)">
+                  <Text
+                    value={o.carrier || ''}
+                    onChange={(v) => setO((a) => (a[i].carrier = v))}
+                  />
+                </Field>
+                <Field label="Entrega estimada (texto, ej. 22-25 ene)">
+                  <Text
+                    value={o.estimatedDelivery || ''}
+                    onChange={(v) => setO((a) => (a[i].estimatedDelivery = v))}
+                  />
+                </Field>
+              </div>
+
+              <Field label="Notas internas (no se muestran al cliente)">
+                <TextArea
+                  rows={2}
+                  value={o.notes || ''}
+                  onChange={(v) => setO((a) => (a[i].notes = v))}
+                />
+              </Field>
+
+              <div className="border-t pt-3 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold text-sm">Fases del envío</p>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setO((a) => {
+                        a[i].stages = [...DEFAULT_FAKE_STAGES];
+                        if (a[i].currentStage > DEFAULT_FAKE_STAGES.length - 1) {
+                          a[i].currentStage = DEFAULT_FAKE_STAGES.length - 1;
+                        }
+                      })
+                    }
+                    className="text-xs text-slate-600 underline hover:text-slate-900"
+                  >
+                    Restablecer fases por defecto
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {stages.map((s, sIdx) => (
+                    <div
+                      key={sIdx}
+                      className="flex items-center gap-2 bg-white border rounded px-2 py-1"
+                    >
+                      <input
+                        type="radio"
+                        name={`current-stage-${i}`}
+                        checked={current === sIdx}
+                        onChange={() => setO((a) => (a[i].currentStage = sIdx))}
+                        data-testid={`fake-order-${i}-stage-${sIdx}`}
+                      />
+                      <input
+                        type="text"
+                        value={s}
+                        onChange={(e) =>
+                          setO((a) => {
+                            const arr = Array.isArray(a[i].stages)
+                              ? [...a[i].stages]
+                              : [...DEFAULT_FAKE_STAGES];
+                            arr[sIdx] = e.target.value;
+                            a[i].stages = arr;
+                          })
+                        }
+                        className="flex-1 border rounded px-2 py-1 text-sm"
+                      />
+                      <span className="text-xs text-slate-500 w-20 text-right">
+                        {current === sIdx ? 'Fase actual' : ''}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setO((a) => {
+                            const arr = Array.isArray(a[i].stages)
+                              ? [...a[i].stages]
+                              : [...DEFAULT_FAKE_STAGES];
+                            if (arr.length <= 1) return;
+                            arr.splice(sIdx, 1);
+                            a[i].stages = arr;
+                            if (a[i].currentStage >= arr.length) a[i].currentStage = arr.length - 1;
+                          })
+                        }
+                        className="text-red-600 hover:text-red-800 text-xs"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setO((a) => {
+                      const arr = Array.isArray(a[i].stages)
+                        ? [...a[i].stages]
+                        : [...DEFAULT_FAKE_STAGES];
+                      arr.push('Nueva fase');
+                      a[i].stages = arr;
+                    })
+                  }
+                  className="text-xs text-slate-600 underline hover:text-slate-900"
+                >
+                  + Añadir fase
+                </button>
+              </div>
+
+              <div className="text-xs text-slate-500">
+                Progreso: {current + 1} / {stages.length} &mdash; {stages[current]}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Section>
+  );
+}
