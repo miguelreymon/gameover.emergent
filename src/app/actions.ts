@@ -674,7 +674,15 @@ export async function lookupFakeOrderAction(
     const stages: string[] =
       Array.isArray(match.stages) && match.stages.length > 0
         ? match.stages
-        : ['Pedido recibido', 'En preparación', 'Enviado', 'En tránsito', 'En reparto', 'Entregado'];
+        : [
+            'Pedido recibido',
+            'En preparación',
+            'Recogido',
+            'Enviado',
+            'En tránsito',
+            'En reparto',
+            'Entregado',
+          ];
     const currentStage = Math.max(
       0,
       Math.min(stages.length - 1, Number(match.currentStage) || 0)

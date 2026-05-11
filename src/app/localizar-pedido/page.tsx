@@ -117,6 +117,12 @@ function OrderProgress({ order, onReset }: { order: FakeOrderPublic; onReset: ()
   // Progress fill (0% on first stage, 100% on last stage)
   const progressPct = total <= 1 ? 100 : (currentStage / (total - 1)) * 100;
   const isDelivered = currentStage >= total - 1;
+  const currentLabelNorm = (stages[currentStage] || '')
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '');
+  const isPickedUp = currentLabelNorm.startsWith('recogid');
 
   return (
     <div className="space-y-6" data-testid="track-order-result">
@@ -223,6 +229,17 @@ function OrderProgress({ order, onReset }: { order: FakeOrderPublic; onReset: ()
             <div>
               <p className="text-xs uppercase tracking-wider text-slate-500">Estado actual</p>
               <p className="font-bold text-lg leading-tight">{stages[currentStage]}</p>
+              {isPickedUp && (
+                <p
+                  className="text-sm text-slate-700 mt-2 leading-relaxed"
+                  data-testid="track-order-pickedup-note"
+                >
+                  Tu pedido ya ha sido recogido por la empresa de transporte. En el momento en
+                  que procesen el paquete en sus instalaciones recibirás por email el número de
+                  seguimiento de la empresa de transporte para que puedas hacer el seguimiento
+                  detallado del envío.
+                </p>
+              )}
               {order.estimatedDelivery && !isDelivered && (
                 <p className="text-sm text-slate-600 mt-1">
                   Entrega estimada: <strong>{order.estimatedDelivery}</strong>

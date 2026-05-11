@@ -1587,6 +1587,7 @@ function ThemeTab({ sc, update }: { sc: AnyObj; update: (fn: (d: AnyObj) => void
 const DEFAULT_FAKE_STAGES = [
   'Pedido recibido',
   'En preparación',
+  'Recogido',
   'Enviado',
   'En tránsito',
   'En reparto',

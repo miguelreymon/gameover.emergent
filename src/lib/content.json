@@ -948,33 +948,6 @@
       "accent": "#2EA85C",
       "announcementBg": "#000000"
     },
-    "fakeOrders": [
-      {
-        "id": "1778519913971",
-        "trackingCode": "1234",
-        "customerName": "sadsad",
-        "customerEmail": "test@example.com",
-        "customerPhone": "asdsa",
-        "address": "asdsa",
-        "city": "asdsa",
-        "postalCode": "asdsa",
-        "country": "España",
-        "product": "asd",
-        "total": "",
-        "carrier": "Correos Express",
-        "estimatedDelivery": "14 mayo",
-        "stages": [
-          "Pedido recibido",
-          "En preparación",
-          "Enviado",
-          "En tránsito",
-          "En reparto",
-          "Entregado"
-        ],
-        "currentStage": 2,
-        "notes": "",
-        "createdAt": "2026-05-11T17:18:33.971Z"
-      }
-    ]
+    "fakeOrders": []
   }
 }
