@@ -785,11 +785,11 @@
         "cartImage": "/images/portada.webp",
         "variants": [
           {
-            "id": "10k",
+            "id": "10",
             "name": "1 Jugador",
-            "price": 99,
-            "originalPrice": 199,
-            "stock": 3
+            "price": 98,
+            "originalPrice": 198,
+            "stock": 0
           },
           {
             "id": "33k",
@@ -886,7 +886,7 @@
           }
         },
         "slug": "consola-gameover",
-        "shortDescription": "Consola retro con más de 15.000 juegos arcade, 100% inalámbrica.",
+        "shortDescription": "Consola retro con más de 15.000 juegos arcade, 100% inalámbrica",
         "featureSection1": {
           "title": "🎮 Las consolas retro están de moda.",
           "paragraphs": [
@@ -902,14 +902,38 @@
           ],
           "listItems": [],
           "imageSrc": "/images/2.mp4"
-        }
+        },
+        "featureSections": [
+          {
+            "title": "🎮 Las consolas retro están de moda.",
+            "paragraphs": [
+              "Gameover te da la libertad de jugar a los shooters arcade como se concibieron originalmente: sin cables que te limiten ni distracciones que interrumpan la experiencia. Es totalmente inalámbrico , sensible y está diseñado para que te resulte natural en las manos. Te mueves con libertad, apuntas instintivamente y mantienes la puntería. Cada disparo pone a prueba tu habilidad, ofreciendo una experiencia de tiro totalmente inmersiva que recompensa la precisión y el control."
+            ],
+            "listItems": [],
+            "imageSrc": "/images/1.1.mp4"
+          },
+          {
+            "title": "✅​ Sincronización del retroceso",
+            "paragraphs": [
+              "Hemos creado un programa específico de sincronización de retroceso para Retro Gun . Sincroniza el retroceso y la vibración con la acción en pantalla. Ajusta la respuesta para que las pistolas, las escopetas y las ametralladoras tengan cada una su propia potencia y velocidad de retroceso , de modo que realmente se siente como si estuvieras sosteniendo un arma diferente. Sin munición, no hay retroceso. Recargar produce una vibración perceptible. Compatible con MameHooker, QmameHooker, Hook of the Reaper y DemulShooter para una retroalimentación precisa y adaptada al juego."
+            ],
+            "listItems": [],
+            "imageSrc": "/images/2.mp4"
+          },
+          {
+            "title": "¡NOS HEMOS VUELTO LOCOS!",
+            "paragraphs": [],
+            "listItems": [],
+            "imageSrc": "/images/PROMO.webp"
+          }
+        ]
       }
     ],
     "featuredProductSlug": "consola-gameover-copia-1778171991444",
     "heroBanner": {
-      "image": "/images/portada.webp",
-      "title": "Bienvenido a Gameover",
-      "subtitle": "Las mejores consolas retro, directo a tu salón.",
+      "image": "/images/PROMO.webp",
+      "title": "",
+      "subtitle": "",
       "enabled": true
     },
     "menu": [
